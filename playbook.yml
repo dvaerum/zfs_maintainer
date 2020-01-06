@@ -1,0 +1,110 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars:
+    root_zfs_pool: "{{ ansible_cmdline.rpool }}"
+    distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
+    distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
+    distro_next_boot_path: "{{ distro_filesystem_path }}_next_boot"
+    next_boot_mountpoint: "/tmp/pre-pare_next_boot"
+    grub_filesystem_path: "{{ root_zfs_pool }}/data/grub"
+
+    binds:
+      - "/var"
+#      - "/boot/EFI"
+      - "/boot/grub"
+
+    snapshots:
+      - "{{ grub_filesystem_path }}"
+
+    package_mgmt_data:
+      origin: "/var/lib/pacman"
+      new_dst: "/patchmgmt/pacman"
+
+    patch_user: patchmgmt
+
+  tags:
+    - pre_patch
+
+  roles:
+    - name: Verify The System
+      role: verify_system
+      tags:
+        - verify_system
+
+    - name: Snapshot & Clone The ROOT (/) Filesystem
+      role: snapshot_and_clone
+      tags:
+        - zfs_checks
+
+    - name: Unmount The List of Binds (in case they was mounted - can easily happen in testing)
+      role: umount_binds
+      tags:
+        - mount_binds
+
+    - name: Mount The List of Binds
+      role: mount_binds
+      tags:
+        - mount_binds
+
+
+- hosts: chroots
+  gather_facts: true
+  vars:
+    next_boot_mountpoint: "/tmp/pre-pare_next_boot"
+    distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}_next_boot"
+
+    package_mgmt_data:
+      origin: "/var/lib/pacman"
+      new_dst: "/patchmgmt/pacman"
+
+    patch_user: patchmgmt
+
+  tags:
+    - patch
+
+  roles:
+    - name: Upgrade All Packages
+      role: patch
+      tags:
+        - patch_upgrade
+
+    - name: Generate new grub.cfg
+      role: grub_mkconfig
+      tags:
+        - patch_grub
+
+
+- hosts: localhost
+  gather_facts: true
+  vars:
+    root_zfs_pool: "{{ ansible_cmdline.rpool }}"
+    distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
+    distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
+    distro_next_boot_path: "{{ distro_filesystem_path }}_next_boot"
+    next_boot_mountpoint: "/tmp/pre-pare_next_boot"
+
+  tags:
+    - post_patch
+
+  roles:
+    - name: Make Sure That The Folder /tmp in chroot The Envirement is Emply
+      role: clean_chroot_tmp
+      tags:
+        - clean_chroot_tmp
+
+    - name: Unmount The (ZFS) next_boot
+      role: unmount_next_boot
+      tags:
+        - unmount_next_boot
+
+  post_tasks:
+    - name: Set bootfs (zpool prop) to the next_boot
+      command: "zpool set bootfs='{{ distro_next_boot_path }}' '{{ root_zfs_pool }}'"
+      tags:
+        - update_bootfs
+
+

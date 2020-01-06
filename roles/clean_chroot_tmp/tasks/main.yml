@@ -1,0 +1,16 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Remove the /tmp folder from the chroot enviroment in order to clean out all the builds
+  file:
+    path: "{{ next_boot_mountpoint }}/tmp"
+    state: absent
+
+- name: Recreate the /tmp folder in the chroot enviroment
+  file:
+    path: "{{ next_boot_mountpoint }}/tmp"
+    state: directory
+    owner: root
+    group: root
+    mode: 0777
+    recurse: no
+

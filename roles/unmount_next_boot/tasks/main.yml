@@ -1,0 +1,29 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Unmount the entire next_boot envirement
+  command: "umount --recursive '{{ next_boot_mountpoint }}'"
+
+- name: Gather ZFS fact about the distro partition
+  zfs_facts:
+    name: "{{ distro_next_boot_path }}"
+    recurse: no
+    type: all
+    properties: all
+
+- debug:
+    var: ansible_zfs_datasets
+
+- name: Unmount the (zfs) next_boot partition
+  command: "zfs unmount {{ distro_next_boot_path }}"
+  when: ansible_zfs_datasets | json_query(json_filter) | count == 1
+  vars:
+    json_filter: "[?name=='{{ distro_next_boot_path }}' && mounted=='yes']"
+
+- name: Config the zfs settings for the next_boot
+  zfs:
+    name: "{{ distro_next_boot_path }}"
+    state: present
+    extra_zfs_properties:
+      canmount: noauto
+      mountpoint: "/"
+

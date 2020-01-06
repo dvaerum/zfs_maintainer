@@ -1,0 +1,52 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Gather ZFS fact about the distro partition
+  zfs_facts:
+    name: "{{ distro_filesystem_path }}"
+    recurse: yes
+    type: all
+    properties: all
+
+- name: Check that the distro partition exist
+  fail:
+    msg: "The partition '{{ distro_filesystem_path }}' don't exist"
+  when: ansible_zfs_datasets | json_query(json_filter) | count < 1
+  vars:
+    json_filter: "[?name=='{{ distro_filesystem_path }}']"
+
+- name: Check that the snapshot named 'before_upgrade' doesn't exist
+  fail:
+    msg: "The snapshot '{{ distro_snapshot_path }}' is not suppose to exist"
+  when: ansible_zfs_datasets | json_query(json_filter) | count == 1
+  vars:
+    json_filter: "[?name=='{{ distro_snapshot_path }}'].name"
+
+- name: Create before upgrade snapshot
+  zfs:
+    name: "{{ distro_snapshot_path }}"
+    state: present
+
+- name: Create clone of the snapshot name 'before_upgrade'
+  zfs:
+    name: "{{ distro_next_boot_path }}"
+    state: present
+    origin: "{{ distro_snapshot_path }}"
+    extra_zfs_properties:
+      canmount: yes
+      mountpoint: "{{ next_boot_mountpoint }}"
+
+- name: Create snapshots of extra filesystems
+  zfs:
+    name: "{{ item }}@before_upgrade"
+    state: present
+  with_items: "{{ snapshots }}"
+
+- name: Set permissions for the  mountpoint folder
+  file:
+    path: "{{ next_boot_mountpoint }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+    recurse: no
+

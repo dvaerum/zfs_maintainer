@@ -1,0 +1,9 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Mount the list of binds
+  command: "mount --bind '{{ item }}' '{{ next_boot_mountpoint }}{{ item }}'"
+  args:
+    warn: false
+  with_items: "{{ binds }}"
+
+

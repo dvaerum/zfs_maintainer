@@ -1,0 +1,70 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Verify patchmgmt group
+  group:
+    name: "{{ patch_user }}"
+    system: yes
+
+- name: Verify patchmgmt user
+  user:
+    name: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    comment: Patch Management
+    state: present
+    home: "/{{ patch_user }}"
+    system: yes
+
+- name: Check patchmgmt home folder permissions
+  file:
+    path: "/{{ patch_user }}"
+    state: directory
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0755
+
+- name: "Check if there is a mountpoint on the origin path ({{ package_mgmt_data.origin }}) of the package manager data"
+  command: "mountpoint '{{ package_mgmt_data.origin }}'"
+  register: _result
+  failed_when: _result.stderr | count > 0
+
+- set_fact:
+    _not_a_mountpoint: "{{ false if _result.rc == 0 else true }}"
+
+- name: Check if pacman (origin folder) contains any files
+  find:
+    path: "{{ package_mgmt_data.origin }}"
+    patterns: '*'
+    file_type: any
+    recurse: no
+  when: _not_a_mountpoint
+  register: _search_result
+
+- name: If the path /var/lib/pacman is not a symbolic link, make it so
+  block:
+    - name: "Delete the folder /{{ patch_user }}/pacman, if it exist"
+      file:
+        path: "/{{ patch_user }}/pacman"
+        state: absent
+
+    - name: "Move the folder {{ package_mgmt_data.origin }} -> {{ package_mgmt_data.new_dst }}"
+      command: "mv '{{ package_mgmt_data.origin }}' '{{ package_mgmt_data.new_dst }}'"
+
+  when:
+    - _search_result.matched is defined
+    - _search_result.matched > 0
+
+- name: "Mount binding the folder {{ package_mgmt_data.new_dst }} -> {{ package_mgmt_data.origin }}"
+  mount:
+    src: "{{ package_mgmt_data.new_dst }}"
+    path: "{{ package_mgmt_data.origin }}"
+    opts: bind,x-systemd.requires=zfs-mount.service
+    state: mounted
+    fstype: none
+
+#- name: Make sure the necessary packages are installed
+#  pacman:
+#    name: arch-install-scripts
+#    state: present
+#    update_cache: yes
+
+

@@ -1,0 +1,31 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: "Mount binding the folder {{ package_mgmt_data.new_dst }} -> {{ package_mgmt_data.origin }}"
+  mount:
+    src: "{{ package_mgmt_data.new_dst }}"
+    path: "{{ package_mgmt_data.origin }}"
+    opts: bind,x-systemd.requires=zfs-mount.service
+    state: mounted
+    fstype: none
+
+- name: Run pacman
+  pacman:
+    upgrade: yes
+    update_cache: yes
+  register: _result_pacman
+
+- name: Run pacman (debug)
+  debug:
+    var: _result_pacman
+
+- name: Upgrade packages from the aur
+#  become: yes
+#  become_user: "{{ patch_user }}"
+  command: trizen -Sy --aur --noconfirm
+  register: _result_pacman
+
+- name: Upgrade packages from the aur (debug)
+  debug:
+    var: _result_pacman
+
+

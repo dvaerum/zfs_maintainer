@@ -1,0 +1,11 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Generates a new grub.cfg file based on a template
+  template:
+    src: grub.cfg.j2
+    dest: /boot/grub/grub.cfg
+    owner: root
+    group: root
+    mode: '0600'
+
+
