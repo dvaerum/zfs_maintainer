@@ -61,10 +61,10 @@
     state: mounted
     fstype: none
 
-#- name: Make sure the necessary packages are installed
-#  pacman:
-#    name: arch-install-scripts
-#    state: present
-#    update_cache: yes
+- name: Make sure the necessary packages are installed
+  pacman:
+    name: arch-install-scripts
+    state: present
+    update_cache: yes
 
 
