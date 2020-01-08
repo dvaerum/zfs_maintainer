@@ -1,0 +1,21 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars_prompt:
+    - name: install_device
+      prompt: Enter the path of the device the system will be install to
+      private: no
+
+  roles:
+    - name: Check and Confirm Variables
+      role: check_and_confirm_variables
+      tags:
+        - check_and_confirm_variables
+
+#    - name: Setup/Config Filesystem
+#      role: setup_filesystem
+#      tags:
+#        - setup_filesystem

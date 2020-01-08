@@ -1,0 +1,20 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Check the variable install_device
+  stat:
+    path: "{{ install_device }}"
+    follow: yes
+  register: result
+
+- fail:
+    msg: "The path in the varaible install_device ({{ install_device }}) doesn't exist, isn't a block device or the directory parent isn't /dev"
+  when: not result.stat.exists or not result.stat.isblk or result.stat.path | dirname != "/dev"
+
+- fail:
+    msg: "Cannot install linux one the device '{{ install_device | basename }}' because the device contains partitions"
+  when: ansible_devices[install_device | basename].partitions | count > 0
+
+- debug:
+    #var: result
+    var: ansible_devices[install_device | basename]
+
