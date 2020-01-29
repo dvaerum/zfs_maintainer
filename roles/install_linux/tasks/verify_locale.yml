@@ -1,0 +1,43 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- set_fact:
+    _item: "{{ item | regex_replace('\\..*', '', ignorecase=True) }}"
+
+- debug:
+    var: _item
+  when: debug | default(false)
+  
+- name: "Backup locale-gen"
+  copy:
+    src: "/etc/locale.gen"
+    dest: "/etc/locale.gen.backup"
+    remote_src: yes
+    
+- name: "Check the to locate '{{ _item }}' exists"
+  lineinfile:
+    path: "/etc/locale.gen"
+    state: present
+    regexp: "^#?{{ _item }}\\.UTF-8"
+    line: "{{ _item }}.UTF-8 UTF-8"
+  register: _result
+
+- name: "Check the to locate '{{ _item }}' exists (debug)"
+  debug:
+    var: _result
+  when: debug | default(false)
+
+- block:
+    - fail:
+        msg: "The locale '{{ _item }}' doesn't exists"
+      when: _result.msg == "line added"
+  rescue:
+    - name: "Restore locale-gen from backup"
+      copy:
+        src: "/etc/locale.gen.backup"
+        dest: "/etc/locale.gen"
+        remote_src: yes
+  always:
+    - name: "Remove locale-gen backup"
+      file:
+        path: "/etc/locale.gen.backup"
+        state: absent

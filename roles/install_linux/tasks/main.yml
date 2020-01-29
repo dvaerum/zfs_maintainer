@@ -1,0 +1,109 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Install the package manager Trizen
+  include: install_trizen.yml
+
+- name: Install packages
+  pacman:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+    update_cache_extra_args: --needed
+  register: _result
+
+- name: Install packages needed for atomic update
+  become: yes
+  become_user: "{{ patch_user }}"
+  command: >- 
+    trizen -S --noconfirm --needed --noprogressbar
+    {{ packages_need_for_atomic_update | join(' ') }}
+  register: _result_pacman
+
+- name: Install packages (debug)
+  debug:
+    var: _result
+
+- name: Check that the time zone exists
+  stat:
+    path: "/usr/share/zoneinfo/{{ time_zone }}"
+  register: _result
+  
+- fail:
+    msg: "The time zone: {{ time_zone }} doesn't exist"
+  when: not _result.stat.exists or not _result.stat.isreg
+    
+- name: Set the time zone
+  file:
+    state: link
+    src: "/usr/share/zoneinfo/{{ time_zone }}"
+    path: "/etc/localtime"
+
+- name: Verify that the list of locale exist
+  include: verify_locale.yml
+  loop: "{{ locale }}"
+
+- name: Setup locale config
+  template:
+    src: locale.conf.j2
+    dest: /etc/locale.conf
+
+- name: Generate locale
+  command: locale-gen
+
+- name: Set hostname
+  copy:
+    content: "{{ hostname }}\n"
+    dest: "/etc/hostname"
+    owner: root
+    group: root
+    mode: 0544
+
+- name: Set network to default dhcp with systemd
+  template:
+    src: "systemd-dhcp.network.j2"
+    dest: "/etc/systemd/network/systemd-dhcp.network"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Config mkinitcpio
+  include: mkinitcpio.yml
+
+- name: Create hash of password
+  command: >-
+    python3 -c "import crypt; print(crypt.crypt('{{ admin_pass }}'))"
+  register: admin_pass_hash
+
+- name: Set variable admin_pass_hash
+  set_fact:
+    admin_pass_hash: "{{ admin_pass_hash.stdout }}"
+
+#- name: Set password for the root user to the same as the admin user
+#  user:
+#    name: root
+#    shell: /usr/bin/fish
+#    password: "{{ admin_pass_hash }}"
+
+- name: Add the group for the admin user
+  group:
+    name: "{{ admin_user }}"
+    system: yes
+
+- name: Add the admin user
+  user:
+    name: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    password: "{{ admin_pass_hash }}"
+    state: present
+    home: "/home/{{ admin_user }}"
+    shell: /usr/bin/fish
+    system: no
+    update_password: on_create
+
+- name: Set the correct permissions for the home folder of the admin user
+  file:
+    path: "/home/{{ admin_user }}"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: 0700

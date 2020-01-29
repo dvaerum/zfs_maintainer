@@ -1,21 +1,196 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - hosts: localhost
-  connection: local
   gather_facts: true
 
   vars_prompt:
     - name: install_device
       prompt: Enter the path of the device the system will be install to
       private: no
+      
+    - name: zpool_number
+      prompt: Enter the number which will be added to the zpool
+      private: no
+      
+    - name: admin_user
+      prompt: "What is the username of the admin user?"
+      private: no
+      
+    - name: admin_pass
+      prompt: "What is the password of the admin user?"
+      private: yes
+      
+  vars:
+    zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
+    root_zfs_pool: "zroot_{{ zpool_number }}"
+    distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
 
   roles:
-    - name: Check and Confirm Variables
+    - name: Check & Confirm Variables
       role: check_and_confirm_variables
       tags:
         - check_and_confirm_variables
 
-#    - name: Setup/Config Filesystem
-#      role: setup_filesystem
-#      tags:
-#        - setup_filesystem
+    - name: Setup/Config Filesystem
+      role: setup_filesystem
+      tags:
+        - setup_filesystem
+      vars:
+        boot_partition:
+          buffer: 2
+          size: 128
+          number: 1
+        zfs_partition:
+          number: 2
+          
+  post_tasks:
+    - name: Install base linux environment
+      command: "pacstrap '{{ next_boot_mountpoint }}' base base-devel linux-firmware python inetutils"
+      tags:
+        - install_base_linux_env
+
+
+- hosts: localhost
+  gather_facts: false
+  tags:
+    - pre-chroot
+
+  tasks:
+    - name: Pre-mounting for chroot
+      command:
+        warn: no
+        cmd: >-
+          mount '{{ item.src }}' '{{ item.dest }}'
+          {% if item.bind | default(False) %}
+          --bind
+          {% else %}
+          --types '{{ item.type }}' --options '{{ item.options | join(",") }}'
+          {% endif %}
+      loop: "{{ mounting_chroot }}"
+
+
+- hosts: chroots
+  gather_facts: true
+  
+  vars_prompt:
+  - name: hostname
+    prompt: Enter hostname for the server
+    private: no
+      
+  vars:
+    #zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
+    #root_zfs_pool: "zroot_{{ zpool_number }}"
+    distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
+    distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}"
+    packages:
+      - git
+      - bash-completion
+      - fish
+      - ansible
+      - openssh
+    kernel_package: linux-lts
+    time_zone: Europe/Copenhagen
+    locale:
+      - en_DK
+      - da_DK
+      - en_US
+    packages_need_for_atomic_update:
+      - trizen
+      - mkinitcpio-sd-zfs
+    enable_services:
+      - zfs.target
+      - zfs-mount.service
+      - zfs-import.target
+      - zfs-import-scan.service
+      - systemd-networkd.service
+      - systemd-resolved.service
+      - sshd.service
+
+  roles:
+    - name: Config The System For Patch Management
+      role: verify_system
+      tags:
+        - verify_system
+
+    - name: Install Grub
+      role: install_grub
+      tags:
+        - install_grub
+
+    - name: Config Grub
+      role: grub_mkconfig
+      tags:
+        - config_grub
+
+    - name: Install Linux
+      role: install_linux
+      tags:
+        - install_linux
+
+  post_tasks:
+    - name: Enable services
+      service:
+        name: "{{ item }}"
+        enabled: yes
+      loop: "{{ enable_services }}"
+      tags:
+        - test
+
+    - name: Fake mounts for 
+      mount:
+          path: "{{ item }}"
+          src: "none"
+          fstype: "none"
+          opts: "fake,x-systemd.requires=zfs-mount.service"
+          state: present
+      loop:
+        - "/var"
+        - "/var/log"
+      tags:
+        - test
+
+    - name: Clean up folders
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/cache/pacman/pkg
+      tags:
+        - test
+
+    - file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /var/cache/pacman/pkg
+      tags:
+        - test
+
+
+
+- hosts: localhost
+  gather_facts: false
+  tags:
+    - post-chroot
+
+  tasks:
+    - zfs_facts:
+        name:
+        recurse: yes
+
+    - name: Initiate variable 'root_zfs_pool'
+      set_fact:
+        root_zfs_pool: "{{ ansible_zfs_datasets | json_query(filter) | first | regex_replace('/.+', '') }}"
+      vars:
+        filter: "[?mountpoint=='{{ next_boot_mountpoint }}'].name"
+
+    - name: Umount the entire chroot envirement
+      command: "umount --verbose --recursive '{{ next_boot_mountpoint }}'"
+      register: _result
+
+    - name: Umount the entire chroot envirement (debug)
+      debug:
+        var: _result
+
+    - name: "Export {{ root_zfs_pool }} pool"
+      command: "zpool export '{{ root_zfs_pool }}'"

@@ -1,0 +1,15 @@
+---
+- name: Set the HOOKS needed in mkinitcpio.conf
+  lineinfile:
+    path: /etc/mkinitcpio.conf
+    regexp: '^HOOKS='
+    # line: HOOKS=(base systemd systemd-tool block autodetect modconf keyboard sd-zfs filesystems)
+    line: HOOKS=(base systemd block autodetect modconf keyboard sd-zfs filesystems)
+
+- name: Generate initcpio
+  command: mkinitcpio -P
+  register: _result
+
+- name: Generate initcpio (debug)
+  debug:
+    var: _result

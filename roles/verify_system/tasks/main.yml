@@ -22,6 +22,14 @@
     group: "{{ patch_user }}"
     mode: 0755
 
+- name: "Make sure that the folder '{{ package_mgmt_data.origin }}' exist"
+  file:
+    path: "{{ package_mgmt_data.origin }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
 - name: "Check if there is a mountpoint on the origin path ({{ package_mgmt_data.origin }}) of the package manager data"
   command: "mountpoint '{{ package_mgmt_data.origin }}'"
   register: _result
@@ -39,7 +47,7 @@
   when: _not_a_mountpoint
   register: _search_result
 
-- name: If the path /var/lib/pacman is not a symbolic link, make it so
+- name: "If the path {{ package_mgmt_data.origin }} is not a mountpoint to {{ package_mgmt_data.dst }}, make it so"
   block:
     - name: "Delete the folder /{{ patch_user }}/pacman, if it exist"
       file:
@@ -66,5 +74,12 @@
     name: arch-install-scripts
     state: present
     update_cache: yes
+    update_cache_extra_args: --needed
 
-
+- name: Install the sudo rule for Patch Management
+  template:
+    src: "patchmgmt.j2"
+    dest: "/etc/sudoers.d/patchmgmt"
+    owner: root
+    group: root
+    mode: 0440

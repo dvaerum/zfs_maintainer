@@ -1,0 +1,83 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Add the repository archzfs
+  lineinfile:
+    path: /etc/pacman.conf
+    firstmatch: yes
+    regexp: '^#\[testing\]'
+    insertbefore: "regex"
+    line: |
+      [archzfs]
+      Server = http://archzfs.com/$repo/x86_64
+      
+      #[testing]
+  when: lookup('file', file) | regex_findall(filter, multiline=True) | count == 0
+  vars:
+    filter: '^\[archzfs\]'
+    file: "{{ next_boot_mountpoint }}/etc/pacman.conf"
+
+- name: Install packages
+  pacman:
+    name: "zfs-{{ kernel_package }}"
+    state: latest
+    update_cache: yes
+    update_cache_extra_args: --needed
+  register: _result
+  ignore_errors: yes
+
+- name: Install packages (debug)
+  debug:
+    var: _result
+
+- zfs_facts:
+    name:
+    recurse: yes
+    
+- debug:
+    var: ansible_zfs_datasets
+  when: debug | default(false)
+
+- name: Initiate variable 'root_zfs_pool'
+  set_fact:
+    root_zfs_pool: "{{ ansible_zfs_datasets | json_query(filter) | first | regex_replace('/.+', '') }}"
+  vars:
+    filter: "[?mountpoint=='{{ next_boot_mountpoint }}'].name"
+
+- debug:
+    var: root_zfs_pool
+  when: debug | default(false)
+
+- name: Find the the block device of the zpool
+  command: "zpool status -PL {{ root_zfs_pool }}"
+  register: _result
+
+- name: Find the the block device of the zpool (set_fact)
+  set_fact:
+    zpool_device_block: "{{ _result.stdout | regex_search('/dev/[^ ]+') | regex_replace('^/dev/(.+)[0-9]+$', '\\1') }}"
+
+- debug:
+    var: ansible_devices[zpool_device_block]
+  when: debug | default(false)
+    
+- name: Mount the EFI partition by UUID
+  mount:
+    path: /boot/EFI
+    src: "UUID={{ ansible_devices[zpool_device_block].partitions[partiton_1].uuid }}"
+    fstype: vfat
+    state: mounted
+  vars:
+    partiton_1: "{{ zpool_device_block }}1"
+
+- name: Install the Grub package
+  pacman:
+    name:
+      - grub
+      - efibootmgr
+    state: latest
+    update_cache: yes
+    update_cache_extra_args: --needed
+    
+- name: Install Grub as the boot loader
+  shell: |
+    export ZPOOL_VDEV_NAME_PATH=1
+    grub-install --target=x86_64-efi --efi-directory=/boot/EFI --removable

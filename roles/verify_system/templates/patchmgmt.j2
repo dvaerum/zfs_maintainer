@@ -1,0 +1,12 @@
+### Sudo rules there allows the {{ patch_user }} user to install packages without a password
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --needed --asdeps
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --needed
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --asdeps
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noconfirm --asdeps
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noconfirm
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu --noconfirm
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Sy --noconfirm
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Sy
+

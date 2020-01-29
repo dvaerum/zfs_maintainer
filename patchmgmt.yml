@@ -14,7 +14,6 @@
 
     binds:
       - "/var"
-#      - "/boot/EFI"
       - "/boot/grub"
 
     snapshots:

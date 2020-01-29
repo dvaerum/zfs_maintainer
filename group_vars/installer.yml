@@ -1,0 +1,56 @@
+---
+next_boot_mountpoint: "/tmp/pre-pare_next_boot"
+makepkg_nonroot_user: nobody
+
+
+mounting_chroot:
+  - src: "proc"
+    dest: "{{ next_boot_mountpoint }}/proc"
+    type: "proc"
+    options: 
+      - "nosuid"
+      - "noexec"
+      - "nodev"
+  - src: "sys"
+    dest: "{{ next_boot_mountpoint }}/sys"
+    type: "sysfs"
+    options: 
+      - "nosuid"
+      - "noexec"
+      - "nodev"
+      - "ro"
+  - src: "udev"
+    dest: "{{ next_boot_mountpoint }}/dev"
+    type: "devtmpfs"
+    options: 
+      - "mode=0755"
+      - "nosuid"
+  - src: "devpts"
+    dest: "{{ next_boot_mountpoint }}/dev/pts"
+    type: "devpts"
+    options: 
+      - "mode=0620"
+      - "gid=5"
+      - "nosuid"
+      - "noexec"
+  - src: "shm"
+    dest: "{{ next_boot_mountpoint }}/dev/shm"
+    type: "tmpfs"
+    options: 
+      - "mode=1777"
+      - "nosuid"
+      - "nodev"
+  - src: "/run"
+    dest: "{{ next_boot_mountpoint }}/run"
+    bind: True
+  - src: "tmp"
+    dest: "{{ next_boot_mountpoint }}/tmp"
+    type: "tmpfs"
+    options: 
+      - "mode=1777"
+      - "strictatime"
+      - "nodev"
+      - "nosuid"
+  - src: "/etc/resolv.conf"
+    dest: "{{ next_boot_mountpoint }}/etc/resolv.conf"
+    bind: True

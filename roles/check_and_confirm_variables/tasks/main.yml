@@ -6,6 +6,10 @@
     follow: yes
   register: result
 
+- debug:
+    var: result
+  when: debug | default(false)
+  
 - fail:
     msg: "The path in the varaible install_device ({{ install_device }}) doesn't exist, isn't a block device or the directory parent isn't /dev"
   when: not result.stat.exists or not result.stat.isblk or result.stat.path | dirname != "/dev"
@@ -14,7 +18,16 @@
     msg: "Cannot install linux one the device '{{ install_device | basename }}' because the device contains partitions"
   when: ansible_devices[install_device | basename].partitions | count > 0
 
+- name: Check the variable zpool_number
+  fail:
+    msg: "The variable zpool_number: '{{ zpool_number }}' isn't a number"
+  when: not zpool_number | regex_search('^[0-9]+$')
+  
 - debug:
-    #var: result
-    var: ansible_devices[install_device | basename]
-
+    var: zpool_number
+  when: debug | default(false)
+  
+- name: Check the variable admin_user
+  fail:
+    msg: "The variable admin_user: '{{ admin_user }}' isn't a valid username"
+  when: not admin_user | regex_search('^[a-z_][a-z0-9_-]*[$]?$')

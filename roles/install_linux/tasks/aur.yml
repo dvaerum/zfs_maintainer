@@ -1,0 +1,61 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: AUR | get metadata from AurJson api
+  uri:
+    url: "https://aur.archlinux.org/rpc.php?type=info&arg={{ item | mandatory }}"
+    return_content: yes
+    timeout: 6
+  register: _api_info
+
+- debug:
+    var: _api_info
+  when: debug | default(false)
+
+- assert:
+    that:
+      - _api_info.status == 200
+      - _api_info.json is defined
+      - _api_info.json.type == 'info'
+      - _api_info.json.resultcount == 1
+      - _api_info.json.results is defined
+      
+- name: Create folders
+  file:
+    state: directory
+    path: "{{ aur_build_dir }}"
+    owner: "{{ makepkg_nonroot_user }}"
+    group: "{{ makepkg_nonroot_user }}"
+    recurse: yes
+    
+- name: AUR | {{ item }} | download tarball
+  get_url:
+    url: "https://aur.archlinux.org{{ _api_info.json.results.URLPath }}"
+    dest: "{{ aur_build_dir }}"
+  register: _aur_tarball
+
+- debug:
+    var: _aur_tarball
+  when: debug | default(false)
+    
+- name: AUR | {{ item }} | upload tarball to host and extract it
+  become: yes
+  become_user: "{{ makepkg_nonroot_user }}"
+  unarchive:
+    src: "{{ _aur_tarball.dest }}"
+    dest: "{{ aur_build_dir }}"
+    remote_src: yes
+  register: _extracted_pkg
+
+# This will break if run as root. Set user to use with makepkg with 'makepkg_user' var
+- name: AUR | {{ item }} | build package, including missing dependencies
+  when: _extracted_pkg.changed
+  become: yes
+  become_user: "{{ makepkg_nonroot_user }}"
+  command: makepkg --noconfirm --noprogressbar --nocolor
+  args:
+    chdir: "{{ aur_build_dir }}/{{ item }}"
+  register: _aur_makepkg_result
+  
+- debug:
+    var: _aur_makepkg_result
+  when: debug | default(false)

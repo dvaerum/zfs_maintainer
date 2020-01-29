@@ -1,4 +1,210 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
+### Notes
+# dennis@DennisPC ~/D/P/zfs_maintainer> sudo fdisk -l /dev/sde
+# Disk /dev/sde: 29,83 GiB, 32010928128 bytes, 62521344 sectors
+# Disk model: SD/MMC/MS PRO   
+# Units: sectors of 1 * 512 = 512 bytes
+# Sector size (logical/physical): 512 bytes / 512 bytes
+# I/O size (minimum/optimal): 512 bytes / 512 bytes
+# Disklabel type: gpt
+# Disk identifier: E8A84537-5A30-483B-8672-A727EB3D4D8E
+# 
+# Device       Start      End  Sectors  Size Type
+# /dev/sde1     2048  2099199  2097152    1G EFI System
+# /dev/sde2  2099200 62521310 60422111 28,8G FreeBSD ZFS
+###
 
+- name: Create boot partition (EFI)
+  parted:
+    device: "{{ install_device }}"
+    label: gpt
+    part_type: primary
+    number: "{{ boot_partition.number }}"
+    name: EFI
+    part_start: "{{ boot_partition.buffer }}MiB"
+    part_end: "{{ boot_partition.size + boot_partition.buffer }}MiB"
+    flags:
+      - esp
+    unit: MiB
+    state: present
+  tags:
+    - create_filesystem
+    
+- name: Create zfs partition
+  parted:
+    device: "{{ install_device }}"
+    label: gpt
+    part_type: primary
+    number: "{{ zfs_partition.number }}"
+    part_start: "{{ boot_partition.size + boot_partition.buffer }}MiB"
+    part_end: "100%"
+    unit: MiB
+    state: present
+  tags:
+    - create_filesystem
+    
+- name: Format boot partition (EFI)
+  filesystem:
+    dev: "{{ install_device }}{{ boot_partition.number }}"
+    fstype: vfat
+    opts: -F 32 -n EFI
+    force: yes
+  tags:
+    - create_filesystem
 
+- name: Format zfs partition
+  command: >
+    zpool create -d -f -o ashift=13
+    -o feature@allocation_classes=enabled
+    -o feature@async_destroy=enabled
+    -o feature@bookmarks=enabled
+    -o feature@embedded_data=enabled
+    -o feature@empty_bpobj=enabled
+    -o feature@enabled_txg=enabled
+    -o feature@extensible_dataset=enabled
+    -o feature@filesystem_limits=enabled
+    -o feature@hole_birth=enabled
+    -o feature@large_blocks=enabled
+    -o feature@lz4_compress=enabled
+    -o feature@project_quota=enabled
+    -o feature@resilver_defer=enabled
+    -o feature@spacemap_histogram=enabled
+    -o feature@spacemap_v2=enabled
+    -o feature@userobj_accounting=enabled
+    -o feature@zpool_checkpoint=enabled
+    '{{ root_zfs_pool }}' '{{ install_device }}{{ zfs_partition.number }}'
+  register: result
+  tags:
+    - create_filesystem
+  
+- debug:
+    var: result
+  when: debug | default(false)
+  tags:
+    - create_filesystem
+    
+- name: Get boot partition info
+  parted: "device={{ install_device }} unit=MiB"
+  register: _install_device_info
+  when: debug | default(false)
+  tags:
+    - create_filesystem
+  
+- debug:
+    var: _install_device_info
+  when: debug | default(false)
+  tags:
+    - create_filesystem
+
+- name: "Export the newly create zpool '{{ root_zfs_pool }}'"
+  command: "zpool export '{{ root_zfs_pool }}'"
+  tags:
+    - create_filesystem
+
+- name: "Re-import the newly create zpool '{{ root_zfs_pool }}'"
+  command: > 
+    zpool import -N
+    -d '/dev/disk/by-id'
+    -R '{{ next_boot_mountpoint }}'
+    '{{ root_zfs_pool }}'
+  tags:
+    - mount_filesystem
+
+- name: "Config the zpool filesystem {{ root_zfs_pool }}"
+  zfs:
+    name: "{{ root_zfs_pool }}"
+    state: present
+    extra_zfs_properties:
+      mountpoint: none
+      compression: lz4
+  tags:
+    - mount_filesystem
+    
+- name: "Config the zpool filesystem {{ root_zfs_pool }}/ROOT"
+  zfs:
+    name: "{{ root_zfs_pool }}/ROOT"
+    state: present
+    extra_zfs_properties:
+      mountpoint: none
+  tags:
+    - mount_filesystem
+    
+- name: "Config the zpool filesystem {{ root_zfs_pool }}/data"
+  zfs:
+    name: "{{ root_zfs_pool }}/data"
+    state: present
+    extra_zfs_properties:
+      mountpoint: none
+  tags:
+    - mount_filesystem
+    
+- name: "Config the zpool filesystem {{ distro_filesystem_path }}"
+  zfs:
+    name: "{{ distro_filesystem_path }}"
+    state: present
+    extra_zfs_properties:
+      mountpoint: /
+      canmount: noauto
+  tags:
+    - mount_filesystem
+      
+- name: "Manually mount the filesystem '{{ distro_filesystem_path }}'"
+  command: "zfs mount '{{ distro_filesystem_path }}'"
+  tags:
+    - mount_filesystem
+    
+- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/home"
+  zfs:
+    name: "{{ root_zfs_pool }}/data/home"
+    state: present
+    extra_zfs_properties:
+      mountpoint: /home
+  tags:
+    - mount_filesystem
+
+- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/home/{{ admin_user }}"
+  zfs:
+    name: "{{ root_zfs_pool }}/data/home/{{ admin_user }}"
+    state: present
+    extra_zfs_properties:
+      mountpoint: "/home/{{ admin_user }}"
+  tags:
+    - mount_filesystem
+
+- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/grub"
+  zfs:
+    name: "{{ root_zfs_pool }}/data/grub"
+    state: present
+    extra_zfs_properties:
+      mountpoint: "/boot/grub"
+  tags:
+    - mount_filesystem
+
+- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/var"
+  zfs:
+    name: "{{ root_zfs_pool }}/data/var"
+    state: present
+    extra_zfs_properties:
+      mountpoint: /var
+  tags:
+    - mount_filesystem
+
+- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/var/log"
+  zfs:
+    name: "{{ root_zfs_pool }}/data/var/log"
+    state: present
+    extra_zfs_properties:
+      acltype: posixacl
+  tags:
+    - mount_filesystem
+
+- name: Mount all zfs filesystems
+  command: "zfs mount -a"
+  tags:
+    - mount_filesystem
+
+- name: "Set the bootfs option for zpool '{{ root_zfs_pool }}'"
+  command: "zpool set 'bootfs={{ distro_filesystem_path }}' '{{ root_zfs_pool }}'"
+  tags:
+    - mount_filesystem

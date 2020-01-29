@@ -100,7 +100,7 @@ menuentry 'Arch Linux' --class arch --class gnu-linux --class gnu --class os $me
 	  search --no-floppy --fs-uuid --set=root 00626d4100bac7a1
 	fi
 	echo	'Loading Linux linux-lts ...'
-	linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot loglevel=3 quiet
+	linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot_10 loglevel=3 quiet
 	echo	'Loading initial ramdisk ...'
 	initrd	{{ distro_filesystem_path_without_zpool }}@/boot/initramfs-linux-lts.img
 }
@@ -117,7 +117,7 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
 		  search --no-floppy --fs-uuid --set=root 00626d4100bac7a1
 		fi
 		echo	'Loading Linux linux-lts ...'
-		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot loglevel=3 quiet
+		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot_10 loglevel=3 quiet
 		echo	'Loading initial ramdisk ...'
 		initrd	{{ distro_filesystem_path_without_zpool }}@/boot/initramfs-linux-lts.img
 	}
@@ -133,7 +133,7 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
 		  search --no-floppy --fs-uuid --set=root 00626d4100bac7a1
 		fi
 		echo	'Loading Linux linux-lts ...'
-		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot loglevel=3 quiet
+		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot_10 loglevel=3 quiet
 		echo	'Loading initial ramdisk ...'
 		initrd	{{ distro_filesystem_path_without_zpool }}@/boot/initramfs-linux-lts-fallback.img
 	}
