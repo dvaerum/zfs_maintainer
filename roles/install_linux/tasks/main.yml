@@ -69,6 +69,14 @@
 - name: Config mkinitcpio
   include: mkinitcpio.yml
 
+- name: Allow members of the 'wheel' group to use sudo
+  copy:
+    content: "%wheel ALL=(ALL) ALL"
+    dest: "/etc/sudoers.d/enable_sudo_access_4_members_of_wheel"
+    owner: root
+    group: root
+    mode: 0440
+
 - name: Create hash of password
   command: >-
     python3 -c "import crypt; print(crypt.crypt('{{ admin_pass }}'))"
@@ -93,6 +101,7 @@
   user:
     name: "{{ admin_user }}"
     group: "{{ admin_user }}"
+    groups: wheel
     password: "{{ admin_pass_hash }}"
     state: present
     home: "/home/{{ admin_user }}"
