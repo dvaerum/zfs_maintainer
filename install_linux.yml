@@ -86,8 +86,9 @@
       - git
       - bash-completion
       - fish
-      - ansible
+      - vim
       - openssh
+      - ansible
     kernel_package: linux-lts
     time_zone: Europe/Copenhagen
     locale:
