@@ -19,8 +19,8 @@
     var: _result_pacman
 
 - name: Upgrade packages from the aur
-#  become: yes
-#  become_user: "{{ patch_user }}"
+  become: yes
+  become_user: "{{ patch_user }}"
   command: trizen -Sy --aur --noconfirm
   register: _result_pacman
 

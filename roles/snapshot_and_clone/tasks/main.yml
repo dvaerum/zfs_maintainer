@@ -32,21 +32,28 @@
     state: present
     origin: "{{ distro_snapshot_path }}"
     extra_zfs_properties:
-      canmount: yes
+      canmount: noauto
       mountpoint: "{{ next_boot_mountpoint }}"
 
-- name: Create snapshots of extra filesystems
-  zfs:
-    name: "{{ item }}@before_upgrade"
-    state: present
-  with_items: "{{ snapshots }}"
+### TODO
+#- name: Create snapshots of extra filesystems
+#  zfs:
+#    name: "{{ item }}@before_upgrade"
+#    state: present
+#  with_items: "{{ snapshots }}"
+#  when: snapshots is defined
 
-- name: Set permissions for the  mountpoint folder
-  file:
-    path: "{{ next_boot_mountpoint }}"
-    state: directory
-    owner: root
-    group: root
-    mode: 0700
-    recurse: no
+- name: Mount zfs filesystem "{{ distro_next_boot_path }}"
+  command: "sudo zfs mount '{{ distro_next_boot_path }}'"
+  args:
+    warn: no
+
+#- name: Set permissions for the mountpoint folder
+#  file:
+#    path: "{{ next_boot_mountpoint }}"
+#    state: directory
+#    owner: root
+#    group: root
+#    mode: 0700
+#    recurse: no
 

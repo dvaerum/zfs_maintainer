@@ -71,9 +71,10 @@
 
 - name: Make sure the necessary packages are installed
   pacman:
-    name: arch-install-scripts
+    name: 
+      - arch-install-scripts
+      - python-jmespath
     state: present
-    update_cache: yes
     update_cache_extra_args: --needed
 
 - name: Install the sudo rule for Patch Management
@@ -83,3 +84,22 @@
     owner: root
     group: root
     mode: 0440
+  ignore_errors: true
+
+- name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
+  command: >-
+    zfs allow -l
+    {{ patch_user }}
+    mount,create
+    {{ root_zfs_pool }}/ROOT
+  ignore_errors: true
+
+- name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
+  command: >-
+    zfs allow -d
+    {{ patch_user }}
+    mount,snapshot,clone,canmount,mountpoint
+    {{ root_zfs_pool }}/ROOT
+  ignore_errors: true
+
+

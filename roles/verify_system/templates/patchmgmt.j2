@@ -1,4 +1,4 @@
-### Sudo rules there allows the {{ patch_user }} user to install packages without a password
+### Sudo rules which allows the {{ patch_user }} user to install packages without a password
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --needed --asdeps
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --needed
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --asdeps
@@ -9,4 +9,29 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Sy --noconfirm
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Sy
+
+
+### Sudo rule which allow the {{ patch_user }} to do a zfs mount without a password
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/zfs mount zroot*/ROOT/*_next_boot
+
+
+### Sudo rules which allow the {{ patch_user }} to umount all the bind-mounts listed in the variable 'binds'
+{% for bind in binds %}
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/umount {{ next_boot_mountpoint }}{{ bind }}
+{% endfor %}
+
+
+### Sudo rules which allow the {{ patch_user }} to umount all the bind-mounts listed in the variable 'binds'
+{% for bind in binds %}
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/mount --bind {{ bind }} {{ next_boot_mountpoint }}{{ bind }}
+{% endfor %}
+
+### Allow user '{{ patch_user }}' to run (arch-)chroot
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/arch-chroot /tmp/pre-pare_next_boot /bin/sh -c *
+
+### Allow user '{{ patch_user }}' to umount the entire next_boot envirement
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/umount --recursive {{ next_boot_mountpoint }}
+
+### Allow user '{{ patch_user }}' to set the new bootfs filesystem
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/zpool set bootfs={{ distro_next_boot_path }} {{ root_zfs_pool }}
 

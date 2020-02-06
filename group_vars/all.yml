@@ -1,8 +1,3 @@
 ---
 aur_build_dir: /tmp/aur-builder
 
-### Patch Manager
-patch_user: patchmgmt
-package_mgmt_data:
-  origin: "/var/lib/pacman"
-  new_dst: "/patchmgmt/pacman"
