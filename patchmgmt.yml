@@ -16,14 +16,9 @@
       - "/var"
       - "/boot/grub"
 
-    snapshots:
-      - "{{ grub_filesystem_path }}"
-
-    package_mgmt_data:
-      origin: "/var/lib/pacman"
-      new_dst: "/patchmgmt/pacman"
-
-    patch_user: patchmgmt
+### TODO: this feature is not implemented yet
+#    snapshots:
+#      - "{{ grub_filesystem_path }}"
 
   tags:
     - pre_patch
@@ -50,17 +45,11 @@
         - mount_binds
 
 
-- hosts: chroots
+- hosts: sudo_chroot
   gather_facts: true
   vars:
     next_boot_mountpoint: "/tmp/pre-pare_next_boot"
     distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}_next_boot"
-
-    package_mgmt_data:
-      origin: "/var/lib/pacman"
-      new_dst: "/patchmgmt/pacman"
-
-    patch_user: patchmgmt
 
   tags:
     - patch
@@ -90,10 +79,10 @@
     - post_patch
 
   roles:
-    - name: Make Sure That The Folder /tmp in chroot The Envirement is Emply
-      role: clean_chroot_tmp
-      tags:
-        - clean_chroot_tmp
+#    - name: Make Sure That The Folder /tmp in chroot The Envirement is Emply
+#      role: clean_chroot_tmp
+#      tags:
+#        - clean_chroot_tmp
 
     - name: Unmount The (ZFS) next_boot
       role: unmount_next_boot
@@ -102,7 +91,9 @@
 
   post_tasks:
     - name: Set bootfs (zpool prop) to the next_boot
-      command: "zpool set bootfs='{{ distro_next_boot_path }}' '{{ root_zfs_pool }}'"
+      command: "sudo zpool set bootfs='{{ distro_next_boot_path }}' '{{ root_zfs_pool }}'"
+      args:
+        warn: no
       tags:
         - update_bootfs
 
