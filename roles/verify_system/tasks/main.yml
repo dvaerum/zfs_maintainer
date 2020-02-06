@@ -84,7 +84,7 @@
     owner: root
     group: root
     mode: 0440
-  ignore_errors: true
+  when: root_user
 
 - name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
   command: >-
@@ -92,7 +92,7 @@
     {{ patch_user }}
     mount,create
     {{ root_zfs_pool }}/ROOT
-  ignore_errors: true
+  when: root_user
 
 - name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
   command: >-
@@ -100,6 +100,5 @@
     {{ patch_user }}
     mount,snapshot,clone,canmount,mountpoint
     {{ root_zfs_pool }}/ROOT
-  ignore_errors: true
-
+  when: root_user
 

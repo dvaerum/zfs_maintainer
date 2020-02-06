@@ -12,10 +12,6 @@
     next_boot_mountpoint: "/tmp/pre-pare_next_boot"
     grub_filesystem_path: "{{ root_zfs_pool }}/data/grub"
 
-    binds:
-      - "/var"
-      - "/boot/grub"
-
 ### TODO: this feature is not implemented yet
 #    snapshots:
 #      - "{{ grub_filesystem_path }}"
@@ -26,8 +22,15 @@
   roles:
     - name: Verify The System
       role: verify_system
+      vars:
+        root_user: "{{ ansible_user_uid == 0 }}"
       tags:
         - verify_system
+
+    - name: Don't Run As The Root User
+      role: stop_if_root
+      tags:
+        - stop_if_root
 
     - name: Snapshot & Clone The ROOT (/) Filesystem
       role: snapshot_and_clone
@@ -79,6 +82,11 @@
     - post_patch
 
   roles:
+    - name: Don't Run As The Root User
+      role: stop_if_root
+      tags:
+        - stop_if_root
+
 #    - name: Make Sure That The Folder /tmp in chroot The Envirement is Emply
 #      role: clean_chroot_tmp
 #      tags:
