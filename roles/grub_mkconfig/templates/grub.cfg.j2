@@ -58,16 +58,12 @@ function load_video {
 }
 
 if [ x$feature_default_font_path = xy ] ; then
-   font=unicode
+  font=unicode
 else
-insmod part_gpt
-insmod zfs
-if [ x$feature_platform_search_hint = xy ]; then
-  search --no-floppy --fs-uuid --set=root  00626d4100bac7a1
-else
-  search --no-floppy --fs-uuid --set=root 00626d4100bac7a1
-fi
-    font="{{ distro_filesystem_path_without_zpool }}@/usr/share/grub/unicode.pf2"
+  insmod part_gpt
+  insmod zfs
+
+  font="{{ distro_filesystem_path_without_zpool }}@/usr/share/grub/unicode.pf2"
 fi
 
 if loadfont $font ; then
@@ -94,11 +90,7 @@ menuentry 'Arch Linux' --class arch --class gnu-linux --class gnu --class os $me
 	insmod gzio
 	insmod part_gpt
 	insmod zfs
-	if [ x$feature_platform_search_hint = xy ]; then
-	  search --no-floppy --fs-uuid --set=root  00626d4100bac7a1
-	else
-	  search --no-floppy --fs-uuid --set=root 00626d4100bac7a1
-	fi
+
 	echo	'Loading Linux linux-lts ...'
 	linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot_10 loglevel=3 quiet
 	echo	'Loading initial ramdisk ...'
@@ -111,11 +103,7 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
 		insmod gzio
 		insmod part_gpt
 		insmod zfs
-		if [ x$feature_platform_search_hint = xy ]; then
-		  search --no-floppy --fs-uuid --set=root  00626d4100bac7a1
-		else
-		  search --no-floppy --fs-uuid --set=root 00626d4100bac7a1
-		fi
+
 		echo	'Loading Linux linux-lts ...'
 		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot_10 loglevel=3 quiet
 		echo	'Loading initial ramdisk ...'
@@ -127,11 +115,7 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
 		insmod gzio
 		insmod part_gpt
 		insmod zfs
-		if [ x$feature_platform_search_hint = xy ]; then
-		  search --no-floppy --fs-uuid --set=root  00626d4100bac7a1
-		else
-		  search --no-floppy --fs-uuid --set=root 00626d4100bac7a1
-		fi
+
 		echo	'Loading Linux linux-lts ...'
 		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool=zroot_10 loglevel=3 quiet
 		echo	'Loading initial ramdisk ...'
