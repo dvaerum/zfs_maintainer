@@ -2,10 +2,11 @@
   command: loginctl enable-linger patchmgmt
   when: root_user
 
-- name: Folder
+- name: Create the folder path for systemd
   file:
     path: "{{ patch_user_home }}/.config/systemd/user"
     state: directory
+    recurse: yes
     owner: "{{ patch_user }}"
     group: "{{ patch_user }}"
     mode: 0755
@@ -59,3 +60,27 @@
     enabled: yes
     scope: user
   when: not root_user
+
+### Setup envirement for shells to interact with systemd
+- name: Create the folder path for fish
+  file:
+    path: "{{ patch_user_home }}/.config/fish"
+    state: directory
+    recurse: yes
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0755
+
+- name: Specify the variable 'XDG_RUNTIME_DIR' for fish
+  blockinfile:
+    path: "{{ patch_user_home }}/.config/fish/config.fish"
+    block: |
+      ### Systemd variable
+      set --export XDG_RUNTIME_DIR /run/user/(id -u)
+
+- name: Specify the variable 'XDG_RUNTIME_DIR' for bash
+  blockinfile:
+    path: "{{ patch_user_home }}/.bashrc"
+    block: |
+      ### Systemd variable
+      export XDG_RUNTIME_DIR="/run/user/$(id -u)"
