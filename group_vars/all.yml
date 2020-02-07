@@ -3,3 +3,4 @@ aur_build_dir: /tmp/aur-builder
 
 patch_user: patchmgmt
 patch_user_home: "/{{ patch_user }}"
+patch_user_logs: "{{ patch_user_home }}/logs"

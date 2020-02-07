@@ -22,6 +22,15 @@
     group: "{{ patch_user }}"
     mode: 0755
 
+- name: Check patchmgmt log folder
+  file:
+    path: "{{ patch_user_logs }}"
+    state: directory
+    recurse: yes
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0750
+
 - name: "Make sure that the folder '{{ package_mgmt_data.origin }}' exist"
   file:
     path: "{{ package_mgmt_data.origin }}"
