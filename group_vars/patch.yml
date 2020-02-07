@@ -1,6 +1,5 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-patch_user: patchmgmt
 package_mgmt_data:
   origin: "/var/lib/pacman"
   new_dst: "/patchmgmt/pacman"

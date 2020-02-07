@@ -33,6 +33,7 @@
     state: started
     enabled: yes
     scope: user
+  when: not root_user
 
 - name: Create systemd user service for 'system_update_checker'
   template:
@@ -57,3 +58,4 @@
     state: started
     enabled: yes
     scope: user
+  when: not root_user
