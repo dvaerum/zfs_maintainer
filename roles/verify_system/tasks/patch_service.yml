@@ -1,0 +1,59 @@
+- name: "Enable user lingering for the patchmgmt user '{{ patchmgmt }}'"
+  command: loginctl enable-linger patchmgmt
+  when: root_user
+
+- name: Folder
+  file:
+    path: "{{ patch_user_home }}/.config/systemd/user"
+    state: directory
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0755
+
+- name: Create systemd user service for 'patchmgmt'
+  template:
+    src: "patchmgmt.service.j2"
+    dest: "{{ patch_user_home }}/.config/systemd/user/patchmgmt.service"
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0644
+
+- name: Create systemd timer for 'patchmgmt'
+  template:
+    src: "patchmgmt.timer.j2"
+    dest: "{{ patch_user_home }}/.config/systemd/user/patchmgmt.timer"
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0644
+
+- name: Enable the timer for Patch Management
+  systemd:
+    daemon_reload: yes
+    name: patchmgmt.timer
+    state: started
+    enabled: yes
+    scope: user
+
+- name: Create systemd user service for 'system_update_checker'
+  template:
+    src: "system_update_checker.service.j2"
+    dest: "{{ patch_user_home }}/.config/systemd/user/system_update_checker.service"
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0644
+
+- name: Create systemd timer for verifying the system update or rollback
+  template:
+    src: "system_update_checker.timer.j2"
+    dest: "{{ patch_user_home }}/.config/systemd/user/system_update_checker.timer"
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0644
+
+- name: Enable the timer for system update verification
+  systemd:
+    daemon_reload: yes
+    name: system_update_checker.timer
+    state: started
+    enabled: yes
+    scope: user

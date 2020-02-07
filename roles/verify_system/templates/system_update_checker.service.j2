@@ -1,0 +1,11 @@
+[Unit]
+Description=Patch Management is patching the system
+
+[Service]
+WorkingDirectory=%h/atomic_update
+Type=oneshot
+
+ExecStart=/usr/bin/ansible-playbook -i inventory.ini system_update_checker.yml
+
+[Install]
+WantedBy=default.target

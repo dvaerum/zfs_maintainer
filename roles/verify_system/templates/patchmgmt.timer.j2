@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Patch Management ones a week
+
+[Timer]
+OnCalendar=Mon *-*-* 00:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
