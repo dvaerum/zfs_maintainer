@@ -1,11 +1,13 @@
-[Unit]
-Description=Patch Management is patching the system
+ExecStart=/usr/bin/ansible-playbook -i inventory.ini patchmgmt.yml
 
 [Service]
 WorkingDirectory=%h/atomic_update
 Type=oneshot
 
-ExecStart=/usr/bin/ansible-playbook -i inventory.ini patchmgmt.yml
+ExecStart=/usr/bin/bash -c '\
+export ANSIBLE_LOG_PATH="{{ patch_user_logs }}/patchmgmt_$(date --iso-8601=seconds).log"; \
+ansible-playbook -i inventory.ini patchmgmt.yml'
+
 ExecStartPost=/usr/bin/sudo /usr/bin/systemctl reboot
 
 [Install]
