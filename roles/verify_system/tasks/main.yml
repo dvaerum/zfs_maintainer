@@ -11,12 +11,12 @@
     group: "{{ patch_user }}"
     comment: Patch Management
     state: present
-    home: "/{{ patch_user }}"
+    home: "{{ patch_user_home }}"
     system: yes
 
 - name: Check patchmgmt home folder permissions
   file:
-    path: "/{{ patch_user }}"
+    path: "{{ patch_user_home }}"
     state: directory
     owner: "{{ patch_user }}"
     group: "{{ patch_user }}"
@@ -49,9 +49,9 @@
 
 - name: "If the path {{ package_mgmt_data.origin }} is not a mountpoint to {{ package_mgmt_data.dst }}, make it so"
   block:
-    - name: "Delete the folder /{{ patch_user }}/pacman, if it exist"
+    - name: "Delete the folder {{ patch_user_home }}/pacman, if it exist"
       file:
-        path: "/{{ patch_user }}/pacman"
+        path: "{{ patch_user_home }}/pacman"
         state: absent
 
     - name: "Move the folder {{ package_mgmt_data.origin }} -> {{ package_mgmt_data.new_dst }}"
@@ -102,3 +102,5 @@
     {{ root_zfs_pool }}/ROOT
   when: root_user
 
+- name: Configurate & Setup service files
+  include: patch_service.yml

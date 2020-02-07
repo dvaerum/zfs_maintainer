@@ -35,3 +35,5 @@
 ### Allow user '{{ patch_user }}' to set the new bootfs filesystem
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/zpool set bootfs={{ distro_next_boot_path }} {{ root_zfs_pool }}
 
+### Allow user '{{ patch_user }}' to reboot the system
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/systemctl reboot
