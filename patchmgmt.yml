@@ -21,8 +21,6 @@
   roles:
     - name: Verify The System
       role: verify_system
-      vars:
-        root_user: "{{ ansible_user_uid == 0 }}"
       tags:
         - verify_system
 

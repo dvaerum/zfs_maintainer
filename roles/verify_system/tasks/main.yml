@@ -113,3 +113,7 @@
 
 - name: Configurate & Setup service files
   include: patch_service.yml
+
+- name: Configurate & Setup service files
+  include: systemd-generator.yml
+  when: root_user

@@ -1,2 +1,6 @@
 ---
 # defaults file for patch
+root_user: "{{ ansible_user_uid == 0 }}"
+
+initcpio_install_dir: "/usr/lib/initcpio/install"
+initcpio_hook_dir: "/usr/lib/mkinitcpio-sd-patchmgmt"
