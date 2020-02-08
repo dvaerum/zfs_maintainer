@@ -7,5 +7,23 @@
     owner: root
     group: root
     mode: '0600'
+  when: ansible_user_uid == 0
+
+- name: Generates a new grub.cfg file based on a template (Beta)
+  shell: |
+    cat <<'zzzEOFzzz' | python3 | sudo /usr/bin/tee "/boot/grub/grub.cfg"
+    from jinja2 import Template,Environment
+    from jinja2.loaders import FileSystemLoader
+
+    with open("roles/grub_mkconfig/templates/grub.cfg.j2", 'r') as content_file:
+      grub_config = Template(
+        content_file.read()
+      ).render(
+        distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}"
+      )
+
+      print(grub_config)
+    zzzEOFzzz
+  when: ansible_user_uid != 0
 
 

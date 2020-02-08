@@ -74,6 +74,10 @@
 - name: Specify the variable 'XDG_RUNTIME_DIR' for fish
   blockinfile:
     path: "{{ patch_user_home }}/.config/fish/config.fish"
+    create: yes
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0644
     block: |
       ### Systemd variable
       set --export XDG_RUNTIME_DIR /run/user/(id -u)
@@ -81,6 +85,11 @@
 - name: Specify the variable 'XDG_RUNTIME_DIR' for bash
   blockinfile:
     path: "{{ patch_user_home }}/.bashrc"
+    create: yes
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0644
     block: |
       ### Systemd variable
       export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+

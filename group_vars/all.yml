@@ -1,6 +1,8 @@
 ---
 aur_build_dir: /tmp/aur-builder
 
+next_boot_mountpoint: "/tmp/pre-pare_next_boot"
+
 patch_user: patchmgmt
 patch_user_home: "/{{ patch_user }}"
 patch_user_logs: "{{ patch_user_home }}/logs"

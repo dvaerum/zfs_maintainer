@@ -1,9 +1,23 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
+- name: "Gets stat of the folder '{{ next_boot_mountpoint }}'"
+  stat:
+    path: "{{ next_boot_mountpoint }}"
+  register: _result
+
+- name: "Gets stat of the folder '{{ next_boot_mountpoint }}'"
+  debug:
+    var: _result
+  when:
+    - not _result.stat.exists
+
 - name: Unmount the entire next_boot envirement
   command: "sudo umount --recursive '{{ next_boot_mountpoint }}'"
   args:
     warn: no
+  when:
+    - _result.stat.exists
+    - _result.stat.isdir
 
 #- name: Gather ZFS fact about the distro partition
 #  zfs_facts:

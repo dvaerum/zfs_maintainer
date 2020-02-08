@@ -1,5 +1,4 @@
 ---
-next_boot_mountpoint: "/tmp/pre-pare_next_boot"
 makepkg_nonroot_user: nobody
 
 
@@ -54,3 +53,4 @@ mounting_chroot:
   - src: "/etc/resolv.conf"
     dest: "{{ next_boot_mountpoint }}/etc/resolv.conf"
     bind: True
+
