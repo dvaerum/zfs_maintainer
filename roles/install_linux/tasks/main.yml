@@ -66,6 +66,7 @@
     group: root
     mode: 0644
 
+# TODO: Check if this task should be moved to the role verify_system
 - name: Config mkinitcpio
   include: mkinitcpio.yml
 

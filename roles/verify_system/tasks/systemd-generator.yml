@@ -1,14 +1,20 @@
-- name: Copy file with owner and permissions
+- name: Create the mkinitcpio module for patchmgmt
   copy:
     content: |
+      #!/usr/bin/env bash
+
       build() {
-        add_binary {{ initcpio_hook_dir }}/generator_patchmgmt /usr/lib/systemd/system-generators/
+        add_file "$(readlink -f /etc/os-release)" "/etc/os-release"
+
+        add_dir "{{ initcpio_hook_dir }}" "{{ initcpio_hook_dir }}"
+
+        add_syslink "/usr/lib/systemd/system-generators/generator_patchmgmt" "{{ initcpio_hook_dir }}/generator_patchmgmt"
+        # add_binary "{{ initcpio_hook_dir }}/generator_patchmgmt" "/usr/lib/systemd/system-generators/"
       }
     dest: "{{ initcpio_install_dir }}/sd-patchmgmt"
     owner: root
     group: root
-    mode: '0644'
-
+    mode: 0644
 
 - name: Ensure the directory '{{ initcpio_hook_dir }}' exists
   file:
@@ -18,24 +24,77 @@
     group: root
     mode: 0755
 
-
-- name: Copy file with owner and permissions
+- name: Create the init generator for patchmgmt
   copy:
     content: |
       #!/usr/bin/env sh
       set -eu
 
-      LOG_FILE="/run/log/generator_patchmgmt.log"
+      LOG_FILE="/generator_patchmgmt.log"
 
       exec 3>&1 4>&2
       trap 'exec 2>&4 1>&3' 0 1 2 3
       exec 1>${LOG_FILE} 2>&1
 
-      for argv in $@; do
-        echo $argv
+      # store arguments in a special array
+      args=("$@")
+      # get number of elements
+      ELEMENTS=${#args[@]}
+
+      # echo each element in array
+      # for loop
+      for (( i=0;i<$ELEMENTS;i++)); do
+        echo "i: '${args[${i}]}'"
       done
+
+      cat "zzzEOFzzz" > "${args[0]}/{{ initcpio_service }}"
+      [Unit]
+      Description=Rename/Move ZFS filesystem after patchmgmt
+      DefaultDependencies=no
+      Requires=zfs-import-scan.service
+      After=zfs-import-scan.service
+      Before=sysroot.mount
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart={{ initcpio_hook_dir }}/post_patchmgmt.sh
+
+      zzzEOFzzz
 
     dest: "{{ initcpio_hook_dir }}/generator_patchmgmt"
     owner: root
     group: root
-    mode: '0755'
+    mode: 0755
+
+- name: Create the script the run after next boot patchmgmt
+  copy:
+    content: |
+      #!/usr/bin/env sh
+      set -eux
+
+      LOG_FILE="/post_patchmgmt.log"
+
+      exec 3>&1 4>&2
+      trap 'exec 2>&4 1>&3' 0 1 2 3
+      exec 1>${LOG_FILE} 2>&1
+
+      DISTRO='{{ ansible_distribution }}'
+      ROOT_ZPOOL='{{ root_zfs_pool }}'
+      ZFS_BOOT="${ROOT_ZPOOL}/ROOT/${DISTRO}"
+      ZFS_NEXT_BOOT="${ZFS_BOOT}_next_boot"
+      ZFS_OLD_BOOT="${ZFS_BOOT}_old_boot"
+
+      result=$(zfs list -Hr -t filesystem -o name "${ROOT_ZPOOL}/ROOT")
+      if echo "${result}" | grep -q "${ZFS_NEXT_BOOT}"; then
+        if zpool get -H bootfs "${ROOT_ZPOOL}" | grep -q "${ZFS_NEXT_BOOT}"; then
+          zfs rename "${ZFS_BOOT}" "${ZFS_OLD_BOOT}"
+          zfs rename "${ZFS_NEXT_BOOT}" "${ZFS_BOOT}"
+          zfs promote "${ZFS_BOOT}"
+        fi
+      fi
+
+    dest: "{{ initcpio_hook_dir }}/post_patchmgmt.sh"
+    owner: root
+    group: root
+    mode: 0755
