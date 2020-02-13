@@ -6,9 +6,9 @@
       build() {
         add_file "$(readlink -f /etc/os-release)" "/etc/os-release"
 
-        add_dir "{{ initcpio_hook_dir }}" "{{ initcpio_hook_dir }}"
+        add_full_dir "{{ initcpio_hook_dir }}"
 
-        add_syslink "/usr/lib/systemd/system-generators/generator_patchmgmt" "{{ initcpio_hook_dir }}/generator_patchmgmt"
+        add_symlink "/usr/lib/systemd/system-generators/generator_patchmgmt" "{{ initcpio_hook_dir }}/generator_patchmgmt"
         # add_binary "{{ initcpio_hook_dir }}/generator_patchmgmt" "/usr/lib/systemd/system-generators/"
       }
     dest: "{{ initcpio_install_dir }}/sd-patchmgmt"
@@ -39,7 +39,7 @@
       # store arguments in a special array
       args=("$@")
       # get number of elements
-      ELEMENTS=${#args[@]}
+      {{ 'ELEMENTS=${#args[@]}' }}
 
       # echo each element in array
       # for loop
