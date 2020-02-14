@@ -60,8 +60,10 @@
       Type=oneshot
       RemainAfterExit=yes
       ExecStart={{ initcpio_hook_dir }}/post_patchmgmt.sh
-
       zzzEOFzzz
+
+      mkdir -p "${FOLDER}/initrd-root-device.target.wants"
+      ln -s "{{ initcpio_service }}" "${FOLDER}/initrd-root-device.target.wants/{{ initcpio_service }}"
 
     dest: "{{ initcpio_hook_dir }}/generator_patchmgmt"
     owner: root
