@@ -38,11 +38,6 @@
 ### Allow user '{{ patch_user }}' to reboot the system
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/systemctl reboot
 
-### Allow user '{{ patch_user }}' to rename zfs filesystem '{{ distro_next_boot_path }}' -> '{{ distro_filesystem_path }}'
-{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/zfs promote {{ distro_next_boot_path }}
-{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/zfs rename {{ distro_next_boot_path }} {{ distro_filesystem_path }}
-{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/zfs destroy {{ distro_next_boot_path }}
-
 ### Allow user '{{ patch_user }}' to overwrite '/boot/grub/grub.cfg' (BETA)
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/tee /boot/grub/grub.cfg
 

@@ -9,6 +9,7 @@
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
     distro_next_boot_path: "{{ distro_filesystem_path }}_next_boot"
+    distro_old_boot_path: "{{ distro_filesystem_path }}_old_boot"
     grub_filesystem_path: "{{ root_zfs_pool }}/data/grub"
 
 ### TODO: this feature is not implemented yet

@@ -1,56 +1,6 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 
-# dennis@server /p/atomic_update> zfs list -t all -ro name,mountpoint,mounted,canmount,origin zroot_10
-# NAME                                    MOUNTPOINT    MOUNTED  CANMOUNT  ORIGIN
-# zroot_10                                none               no        on  -
-# zroot_10/ROOT                           none               no        on  -
-# zroot_10/ROOT/Archlinux                 /                  no    noauto  -
-# zroot_10/ROOT/Archlinux@before_upgrade  -                   -         -  -
-# zroot_10/ROOT/Archlinux_next_boot       /                 yes    noauto  zroot_10/ROOT/Archlinux@before_upgrade
-# zroot_10/data                           none               no        on  -
-# zroot_10/data/grub                      /boot/grub        yes        on  -
-# zroot_10/data/home                      /home             yes        on  -
-# zroot_10/data/home/dennis               /home/dennis      yes        on  -
-# zroot_10/data/var                       /var              yes        on  -
-# zroot_10/data/var/log                   /var/log          yes        on  -
-#
-# dennis@server /p/atomic_update> sudo zfs promote zroot_10/ROOT/Archlinux_next_boot
-#
-# dennis@server /p/atomic_update> zfs list -t all -ro name,mountpoint,mounted,canmount,origin zroot_10
-# NAME                                              MOUNTPOINT    MOUNTED  CANMOUNT  ORIGIN
-# zroot_10                                          none               no        on  -
-# zroot_10/ROOT                                     none               no        on  -
-# zroot_10/ROOT/Archlinux                           /                  no    noauto  zroot_10/ROOT/Archlinux_next_boot@before_upgrade
-# zroot_10/ROOT/Archlinux_next_boot                 /                 yes    noauto  -
-# zroot_10/ROOT/Archlinux_next_boot@before_upgrade  -                   -         -  -
-# zroot_10/data                                     none               no        on  -
-# zroot_10/data/grub                                /boot/grub        yes        on  -
-# zroot_10/data/home                                /home             yes        on  -
-# zroot_10/data/home/dennis                         /home/dennis      yes        on  -
-# zroot_10/data/var                                 /var              yes        on  -
-# zroot_10/data/var/log                             /var/log          yes        on  -
-#
-# dennis@server /p/atomic_update> sudo zfs destroy zroot_10/ROOT/Archlinux; sudo zfs destroy zroot_10/ROOT/Archlinux_next_boot@before_upgrade
-#
-# dennis@server /p/atomic_update> sudo zfs rename zroot_10/ROOT/Archlinux_next_boot zroot_10/ROOT/Archlinux
-# cannot mount '/': directory is not empty
-#
-# dennis@server /p/atomic_update> zfs list -t all -ro name,mountpoint,mounted,canmount,origin zroot_10
-# NAME                       MOUNTPOINT    MOUNTED  CANMOUNT  ORIGIN
-# zroot_10                   none               no        on  -
-# zroot_10/ROOT              none               no        on  -
-# zroot_10/ROOT/Archlinux    /                  no    noauto  -
-# zroot_10/data              none               no        on  -
-# zroot_10/data/grub         /boot/grub        yes        on  -
-# zroot_10/data/home         /home             yes        on  -
-# zroot_10/data/home/dennis  /home/dennis      yes        on  -
-# zroot_10/data/var          /var              yes        on  -
-# zroot_10/data/var/log      /var/log          yes        on  -
-#
-### Note: Remember to fix grub
-
-
 - hosts: localhost
   connection: local
   gather_facts: true
@@ -60,20 +10,142 @@
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
     distro_next_boot_path: "{{ distro_filesystem_path }}_next_boot"
+    distro_old_boot_path: "{{ distro_filesystem_path }}_old_boot"
+    distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}"
 
-  tasks:
-    - name: Promote the filesystgem '{{ distro_next_boot_path }}'
-      command: zfs promote '{{ distro_next_boot_path }}'
+#  pre_tasks:
+#    - meta: end_play
 
-    - name: Destroy the old filesystem '{{ distro_filesystem_path }}'
-      zfs:
-        name: "{{ distro_filesystem_path }}"
-        state: absent
+  roles:
+    - name: Config Grub
+      role: grub_mkconfig
+      tags:
+        - config_grub
 
-    - name: Destroy the old filesystem '{{ distro_filesystem_path }}'
-      zfs:
-        name: "{{ distro_snapshot_path }}"
-        state: absent
+  post_tasks:
+    - zfs_facts:
+        name:
+        recurse: yes
 
-    - name: Rename to filesystem '{{ distro_next_boot_path }}' -> '{{ distro_filesystem_path }}'
-      commnad: zfs rename '{{ distro_next_boot_path }}' '{{ distro_filesystem_path }}'
+    - name: The last things after a successful upgrade
+      block:
+        - name: "Destroy the old filesystem '{{ distro_old_boot_path }}'"
+          zfs:
+            name: "{{ distro_old_boot_path }}"
+            state: absent
+
+        - name: "Rename to snapshot '{{ distro_snapshot_path }}'"
+          command:
+            cmd: "zfs rename '{{ distro_snapshot_path }}' '{{ distro_filesystem_path }}@{{ datetime }}'"
+            warn: no
+          vars:
+            datetime: "{{ lookup('pipe', 'date --utc --date=@$(zfs get creation -Hpo value {{ distro_snapshot_path }})') | regex_replace(' ', '_') }}"
+      when:
+        - ansible_zfs_datasets | json_query(filter_1) | count > 0
+        - ansible_zfs_datasets | json_query(filter_2) | count > 0
+        - ansible_zfs_datasets | json_query(filter_2) | first == '{{ distro_snapshot_path }}'
+      vars:
+        filter_1: "[?name=='{{ distro_snapshot_path }}']"
+        filter_2: "[?name=='{{ distro_old_boot_path }}'].origin"
+
+
+#    - name: The last things after a successful upgrade
+#      block:
+#        - name: "Promote the filesystgem '{{ distro_next_boot_path }}'"
+#          command:
+#            cmd: "sudo zfs promote '{{ distro_next_boot_path }}'"
+#            warn: no
+#          when:
+#            - ansible_zfs_datasets | json_query(filter) | count > 0
+#            - ansible_zfs_datasets | json_query(filter) | first == "{{ distro_snapshot_path }}"
+#          vars:
+#            filter: "[?name=='{{ distro_next_boot_path }}'].origin"
+#
+#        - name: "Destroy the old filesystem '{{ distro_filesystem_path }}'"
+#          zfs:
+#            name: "{{ distro_filesystem_path }}"
+#            state: absent
+#
+#        - name: "Rename to filesystem '{{ distro_next_boot_path }}' -> '{{ distro_filesystem_path }}'"
+#          command:
+#            cmd: "sudo zfs rename '{{ distro_next_boot_path }}' '{{ distro_filesystem_path }}'"
+#            warn: no
+#          register: _result
+#          failed_when:
+#            - _result.rc != 0
+#            - not 'directory is not empty' in _result.stderr
+#
+#        - name: Destroy the snapshot '{{ distro_snapshot_path }}'
+#          zfs:
+#            name: "{{ distro_snapshot_path }}"
+#            state: absent
+#      when:
+#        - ansible_zfs_datasets | json_query(filter) | count > 0
+#        - ansible_zfs_datasets | json_query(filter) | first == '/'
+#      vars:
+#        filter: "[?name=='{{ distro_next_boot_path }}'].mountpoint"
+#
+#    - name: The last things after a successful upgrade
+#      block:
+#        - name: "Promote the filesystgem '{{ distro_next_boot_path }}'"
+#          command:
+#            cmd: "sudo zfs promote '{{ distro_next_boot_path }}'"
+#            warn: no
+#          when:
+#            - ansible_zfs_datasets | json_query(filter) | count > 0
+#            - ansible_zfs_datasets | json_query(filter) | first == "{{ distro_snapshot_path }}"
+#          vars:
+#            filter: "[?name=='{{ distro_next_boot_path }}'].origin"
+#
+#        - name: "Destroy the old filesystem '{{ distro_filesystem_path }}'"
+#          zfs:
+#            name: "{{ distro_filesystem_path }}"
+#            state: absent
+#
+#        - name: "Rename to filesystem '{{ distro_next_boot_path }}' -> '{{ distro_filesystem_path }}'"
+#          command:
+#            cmd: "sudo zfs rename '{{ distro_next_boot_path }}' '{{ distro_filesystem_path }}'"
+#            warn: no
+#          register: _result
+#          failed_when:
+#            - _result.rc != 0
+#            - not 'directory is not empty' in _result.stderr
+#
+#        - name: Destroy the snapshot '{{ distro_snapshot_path }}'
+#          zfs:
+#            name: "{{ distro_snapshot_path }}"
+#            state: absent
+#      when:
+#        - ansible_zfs_datasets | json_query(filter) | count > 0
+#        - ansible_zfs_datasets | json_query(filter) | first == '/'
+#      vars:
+#        filter: "[?name=='{{ distro_next_boot_path }}'].mountpoint"
+#
+#
+#    - name: "Cleanup after a failed update/upgrade"
+#      block:
+#        - stat:
+#            path: "{{ next_boot_mountpoint }}"
+#          register: _result
+#
+#        - name: Make sure everything is umounted
+#          include_role:
+#            name: unmount_next_boot
+#          when:
+#            - _result.stat.exists
+#            - _result.stat.isdir
+#
+#        - name: Destroy clone '{{ distro_next_boot_path }}'
+#          command:
+#            cmd: "sudo zfs destroy '{{ distro_next_boot_path }}'"
+#            warn: no
+#
+#        - name: Destroy the snapshot '{{ distro_snapshot_path }}'
+#          zfs:
+#            name: "{{ distro_snapshot_path }}"
+#            state: absent
+#      when:
+#        - ansible_zfs_datasets | json_query(filter) | count > 0
+#        - ansible_zfs_datasets | json_query(filter) | first == distro_next_boot_path
+#      vars:
+#        filter: "[?mountpoint=='{{ next_boot_mountpoint }}'].name"
