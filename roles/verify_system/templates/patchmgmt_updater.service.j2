@@ -1,0 +1,11 @@
+[Unit]
+Description=Update config file to imapfilter from GitHub
+
+[Service]
+WorkingDirectory=%h/atomic_update
+ExecStart=/usr/bin/git pull
+Restart=always
+RestartSec=60min
+
+[Install]
+WantedBy=default.target

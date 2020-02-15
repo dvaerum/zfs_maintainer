@@ -61,6 +61,23 @@
     scope: user
   when: not root_user
 
+- name: Create systemd service there keeps Patch Management up-to-date
+  template:
+    src: "patchmgmt_updater.service.j2"
+    dest: "{{ patch_user_home }}/.config/systemd/user/patchmgmt_updater.service"
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0644
+
+- name: Enable the service there keeps Patch Management updater
+  systemd:
+    daemon_reload: yes
+    name: patchmgmt_updater.service
+    state: started
+    enabled: yes
+    scope: user
+  when: not root_user
+
 ### Setup envirement for shells to interact with systemd
 - name: Create the folder path for fish
   file:
