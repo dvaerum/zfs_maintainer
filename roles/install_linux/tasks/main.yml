@@ -96,7 +96,7 @@
 - name: Add the group for the admin user
   group:
     name: "{{ admin_user }}"
-    system: yes
+    system: no
 
 - name: Add the admin user
   user:
