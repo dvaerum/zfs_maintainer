@@ -2,6 +2,7 @@
 aur_build_dir: /tmp/aur-builder
 
 next_boot_mountpoint: "/tmp/pre-pare_next_boot"
+distro_next_boot_path: "{{ distro_filesystem_path }}_next_boot"
 
 patch_user: patchmgmt
 patch_user_home: "/{{ patch_user }}"
