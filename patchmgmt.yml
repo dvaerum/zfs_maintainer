@@ -8,7 +8,6 @@
     root_zfs_pool: "{{ ansible_cmdline.rpool }}"
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
-    distro_next_boot_path: "{{ distro_filesystem_path }}_next_boot"
     distro_old_boot_path: "{{ distro_filesystem_path }}_old_boot"
     grub_filesystem_path: "{{ root_zfs_pool }}/data/grub"
 
@@ -46,13 +45,17 @@
         - mount_binds
 
 
-- hosts: sudo_chroot
+- hosts: chroot
+  connection: sudo_chroot
   gather_facts: true
-  vars:
-    distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}_next_boot"
 
   tags:
     - patch
+
+  vars: 
+    root_zfs_pool: "{{ ansible_cmdline.rpool }}"
+    ansible_chroot_exe: arch-chroot
+    distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}_next_boot"
 
   roles:
     - name: Upgrade All Packages
@@ -72,7 +75,6 @@
     root_zfs_pool: "{{ ansible_cmdline.rpool }}"
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
-    distro_next_boot_path: "{{ distro_filesystem_path }}_next_boot"
 
   tags:
     - post_patch
@@ -82,11 +84,6 @@
       role: stop_if_root
       tags:
         - stop_if_root
-
-#    - name: Make Sure That The Folder /tmp in chroot The Envirement is Emply
-#      role: clean_chroot_tmp
-#      tags:
-#        - clean_chroot_tmp
 
     - name: Unmount The (ZFS) next_boot
       role: unmount_next_boot
