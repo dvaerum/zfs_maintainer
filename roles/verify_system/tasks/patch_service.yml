@@ -1,6 +1,30 @@
-- name: "Enable user lingering for the patchmgmt user '{{ patchmgmt }}'"
-  command: loginctl enable-linger patchmgmt
-  when: root_user
+- name: "Make sure that the folder path '/var/lib/systemd/linger' exists (no_systemd)"
+  file:
+    path: "/var/lib/systemd/linger"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when:
+    - root_user
+    - no_systemd
+
+- name: "Enable user lingering for the Patch Management user '{{ patch_user }}' (no_systemd)"
+  file:
+    path: "/var/lib/systemd/linger/{{ patch_user }}"
+    state: touch
+    owner: root
+    group: root
+    mode: 0755
+  when:
+    - root_user
+    - no_systemd
+
+- name: "Enable user lingering for the Patch Management user '{{ patch_user }}'"
+  command: loginctl enable-linger patch_user
+  when:
+    - root_user
+    - not no_systemd
 
 - name: Create the folder path for systemd
   file:
@@ -34,7 +58,9 @@
     state: started
     enabled: yes
     scope: user
-  when: not root_user
+  when:
+    - not root_user
+    - not no_systemd
 
 - name: Create systemd user service for 'system_update_checker'
   template:
@@ -59,7 +85,9 @@
     state: started
     enabled: yes
     scope: user
-  when: not root_user
+  when:
+    - not root_user
+    - not no_systemd
 
 - name: Create systemd service there keeps Patch Management up-to-date
   template:
@@ -76,7 +104,48 @@
     state: started
     enabled: yes
     scope: user
-  when: not root_user
+  when:
+    - not root_user
+    - not no_systemd
+
+- name: Create folder paths for systemd (no_systemd)
+  file:
+    path: "{{ patch_user_home }}/.config/systemd/user/{{ item }}"
+    state: directory
+    recurse: yes
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0755
+  with_items:
+    - timers.target.wants
+    - default.target.wants
+  when:
+    - no_systemd
+
+- name: "Enable the timer for Patch Management & system update verification (no_systemd)"
+  file:
+    src: "{{ patch_user_home }}/.config/systemd/user/{{ item }}"
+    path: "{{ patch_user_home }}/.config/systemd/user/timers.target.wants/{{ item }}"
+    state: link
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0755
+  with_items:
+    - patchmgmt.timer
+    - system_update_checker.timer
+  when:
+    - no_systemd
+
+- name: Create systemd service there keeps Patch Management up-to-date (no_systemd)
+  file:
+    src: "{{ patch_user_home }}/.config/systemd/user/patchmgmt_updater.service"
+    path: "{{ patch_user_home }}/.config/systemd/user/default.target.wants/patchmgmt_updater.service"
+    state: link
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0755
+  when:
+    - no_systemd
 
 ### Setup envirement for shells to interact with systemd
 - name: Create the folder path for fish

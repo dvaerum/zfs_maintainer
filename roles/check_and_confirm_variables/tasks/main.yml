@@ -1,5 +1,30 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
+- name: Check if the variable 'install_device' is defined
+  fail:
+    msg: "The variable 'install_device' is not defined"
+  when: install_device is not defined
+
+- name: Check if the variable 'zpool_number' is defined
+  fail:
+    msg: "The variable 'zpool_number' is not defined"
+  when: zpool_number is not defined
+
+- name: Check if the variable 'admin_user' is defined
+  fail:
+    msg: "The variable 'admin_user' is not defined"
+  when: admin_user is not defined
+
+- name: Check if the variable 'admin_pass' is defined
+  fail:
+    msg: "The variable 'admin_pass' is not defined"
+  when: admin_pass is not defined or admin_pass_hash is not defined
+
+- name: Check if the variable 'hostname' is defined
+  fail:
+    msg: "The variable 'hostname' is not defined"
+  when: hostname is not defined
+
 - name: Check the variable install_device
   stat:
     path: "{{ install_device }}"
@@ -31,3 +56,10 @@
   fail:
     msg: "The variable admin_user: '{{ admin_user }}' isn't a valid username"
   when: not admin_user | regex_search('^[a-z_][a-z0-9_-]*[$]?$')
+
+- name: Checking that the hostname is valid
+  fail:
+    msg: "The hostname '{{ hostname }}' isn't valid"
+  when: not hostname is regex(valid_hostname_regex)
+  vars:
+    valid_hostname_regex: '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
