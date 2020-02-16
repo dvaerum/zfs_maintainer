@@ -1,5 +1,5 @@
 [Unit]
-Description=Patch Management is patching the system
+Description=Checking the system after update/upgrade
 
 [Service]
 WorkingDirectory=%h/atomic_update
@@ -7,7 +7,7 @@ Type=oneshot
 
 ExecStart=/usr/bin/bash -c '\
 export ANSIBLE_LOG_PATH="{{ patch_user_logs }}/system_update_checker_$(date --iso-8601=seconds).log"; \
-ansible-playbook -i inventory.ini system_update_checker.yml'
+ansible-playbook system_update_checker.yml'
 
 [Install]
 WantedBy=default.target
