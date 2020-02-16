@@ -78,20 +78,37 @@
     group: root
     mode: 0440
 
-- name: Create hash of password
+- name: "Create hash of the password for the user '{{ admin_user }}'"
   command: >-
     python3 -c "import crypt; print(crypt.crypt('{{ admin_pass }}'))"
+  when: admin_pass_hash is not defined
   register: admin_pass_hash
 
-- name: Set variable admin_pass_hash
+- name: "Create hash of the password for the user '{{ admin_user }} (set_fact)'"
   set_fact:
     admin_pass_hash: "{{ admin_pass_hash.stdout }}"
+  when: admin_pass_hash.stdout is defined
 
-#- name: Set password for the root user to the same as the admin user
-#  user:
-#    name: root
-#    shell: /usr/bin/fish
-#    password: "{{ admin_pass_hash }}"
+- name: Create hash of the password for the user root
+  command: >-
+    python3 -c "import crypt; print(crypt.crypt('{{ root_pass }}'))"
+  when: 
+    - root_pass_hash is not defined
+    - root_pass is defined
+  register: root_pass_hash
+
+- name: Create hash of the password for the user root (set_fact)
+  set_fact:
+    root_pass_hash: "{{ root_pass_hash.stdout }}"
+  when:
+    - root_pass_hash is defined
+    - root_pass_hash.stdout is defined
+
+- name: Set password for the root user to the same as the admin user
+  user:
+    name: root
+    shell: /usr/bin/fish
+    password: "{{ root_pass_hash | default(admin_pass_hash) }}"
 
 - name: Add the group for the admin user
   group:

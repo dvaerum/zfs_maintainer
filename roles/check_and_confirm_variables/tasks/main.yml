@@ -17,8 +17,10 @@
 
 - name: Check if the variable 'admin_pass' is defined
   fail:
-    msg: "The variable 'admin_pass' is not defined"
-  when: admin_pass is not defined or admin_pass_hash is not defined
+    msg: "The variable 'admin_pass' or 'admin_pass_hash' is not defined"
+  when:
+    - admin_pass is not defined
+    - admin_pass_hash is not defined
 
 - name: Check if the variable 'hostname' is defined
   fail:

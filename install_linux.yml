@@ -3,22 +3,8 @@
 - hosts: localhost
   gather_facts: true
 
-  vars_prompt:
-    - name: install_device
-      prompt: Enter the path of the device the system will be install to
-      private: no
-      
-    - name: zpool_number
-      prompt: Enter the number which will be added to the zpool
-      private: no
-      
-    - name: admin_user
-      prompt: "What is the username of the admin user?"
-      private: no
-      
-    - name: admin_pass
-      prompt: "What is the password of the admin user?"
-      private: yes
+  tags:
+    - setup_base_install
       
   vars:
     zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
@@ -69,17 +55,17 @@
       loop: "{{ mounting_chroot }}"
 
 
-- hosts: chroots
+- hosts: chroot
+  connection: chroot
   gather_facts: true
+
+  tags:
+    - chroot
   
-  vars_prompt:
-  - name: hostname
-    prompt: Enter hostname for the server
-    private: no
-      
   vars:
-    #zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
-    #root_zfs_pool: "zroot_{{ zpool_number }}"
+    ansible_chroot_exe: chroot
+    zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
+    root_zfs_pool: "zroot_{{ zpool_number }}"
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}"
     packages:
@@ -112,6 +98,9 @@
       role: verify_system
       tags:
         - verify_system
+        - verify_system_first
+      vars:
+        no_systemd: true
 
     - name: Install Grub
       role: install_grub
@@ -127,6 +116,14 @@
       role: install_linux
       tags:
         - install_linux
+
+    - name: Config The System For Patch Management
+      role: verify_system
+      tags:
+        - verify_system
+        - verify_system_second
+      vars:
+        no_systemd: true
 
   post_tasks:
     - name: Enable services
@@ -166,7 +163,6 @@
         - /var/cache/pacman/pkg
       tags:
         - test
-
 
 
 - hosts: localhost
