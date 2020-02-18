@@ -37,7 +37,7 @@ Instead of having the playbook create a hash of the password declared in the var
 - **root_pass**  
 Set the password for the root user to something different then the *admin_pass* (or *admin_pass_hash*)
 - **root_pass_hash**  
-same as **admin_pass_root** just for the root
+same as **admin_pass_hash** just for the root
 
 
 # How does it work?
