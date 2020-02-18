@@ -27,7 +27,7 @@ Note: The variable **admin_pass_hash** can be used instead.
 - **hostname**  
 The name of the computer you are installing this OS on.
 
-```
+```sh
 sudo ansible-playbook install_linux.yml \
   -e install_device=/dev/sdX \
   -e zpool_number=42 \
