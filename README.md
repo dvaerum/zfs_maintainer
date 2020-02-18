@@ -1,4 +1,9 @@
-[TOC]
+- [Intro](#intro)
+- [How to install](#how-to-install)
+  - [Extra options](#extra-options)
+- [How does it work?](#how-does-it-work)
+- [The different playbooks](#the-different-playbooks)
+- [TODO](#todo)
 
 # Intro
 The goal of this project was to have a way to easily rollback a bad update, and not have the update interfere with the rest of the system while installing the update.  
@@ -66,6 +71,6 @@ This play verify that the update/upgrade of the system was succesful and if it w
 
 
 
-## TODO
+# TODO
 - Added self installing
   - Added scheduled patchmgmt
