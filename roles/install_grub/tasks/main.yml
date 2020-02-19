@@ -18,7 +18,10 @@
 
 - name: Install packages
   pacman:
-    name: "zfs-{{ kernel_package }}"
+    name:
+      - "{{ kernel_package }}"
+      - "{{ kernel_package }}-headers"
+      - "{{ zfs_package if zfs_package is defined else 'zfs-{}'.format(kernel_package) }}"
     state: latest
     update_cache: yes
     update_cache_extra_args: --needed

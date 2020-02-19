@@ -43,6 +43,8 @@ Instead of having the playbook create a hash of the password declared in the var
 Set the password for the root user to something different then the *admin_pass* (or *admin_pass_hash*)
 - **root_pass_hash**  
 same as **admin_pass_hash** just for the root
+- **zfs_package**  
+Use this variable if you want to specify the package providing ZFS
 
 
 # How does it work?
