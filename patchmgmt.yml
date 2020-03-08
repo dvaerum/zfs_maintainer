@@ -91,14 +91,14 @@
         - unmount_next_boot
 
   post_tasks:
-    - name: adas
+    - name: Delete clone and snapshot, because patch failed
       zfs:
         name: "{{ item }}"
         state: absent
       loop:
         - "{{ distro_next_boot_path }}"
         - "{{ distro_snapshot_path }}"
-      when: not patch_succeeded
+      when: not hostvars['/tmp/pre-pare_next_boot'].patch_succeeded
 
     - name: Set bootfs (zpool prop) to the next_boot
       command: "sudo zpool set bootfs='{{ distro_next_boot_path }}' '{{ root_zfs_pool }}'"
