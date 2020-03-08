@@ -32,7 +32,7 @@
     - name: Set the variable indicating that the patch succeeded
       set_fact:
         patch_succeeded: true
-- rescue:
+  rescue:
     - name: Set the variable indicating that the patch failed
       set_fact:
         patch_succeeded: false
