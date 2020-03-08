@@ -5,7 +5,7 @@
   gather_facts: true
 
   vars:
-    root_zfs_pool: "{{ ansible_cmdline.rpool }}"
+    root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
     distro_old_boot_path: "{{ distro_filesystem_path }}_old_boot"
@@ -53,7 +53,7 @@
     - patch
 
   vars: 
-    root_zfs_pool: "{{ ansible_cmdline.rpool }}"
+    root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"
     ansible_chroot_exe: arch-chroot
     distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}_next_boot"
 
@@ -72,7 +72,7 @@
 - hosts: localhost
   gather_facts: true
   vars:
-    root_zfs_pool: "{{ ansible_cmdline.rpool }}"
+    root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
 
@@ -91,11 +91,18 @@
         - unmount_next_boot
 
   post_tasks:
+    - name: adas
+      zfs:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ distro_next_boot_path }}"
+        - "{{ distro_snapshot_path }}"
+      when: not patch_succeeded
+
     - name: Set bootfs (zpool prop) to the next_boot
       command: "sudo zpool set bootfs='{{ distro_next_boot_path }}' '{{ root_zfs_pool }}'"
       args:
         warn: no
       tags:
         - update_bootfs
-
-

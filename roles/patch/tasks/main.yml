@@ -8,24 +8,32 @@
     state: mounted
     fstype: none
 
-- name: Run pacman
-  pacman:
-    upgrade: yes
-    update_cache: yes
-  register: _result_pacman
+- block:
+    - name: Run pacman
+      pacman:
+        upgrade: yes
+        update_cache: yes
+      register: _result_pacman
 
-- name: Run pacman (debug)
-  debug:
-    var: _result_pacman
+    - name: Run pacman (debug)
+      debug:
+        var: _result_pacman
 
-- name: Upgrade packages from the aur
-  become: yes
-  become_user: "{{ patch_user }}"
-  command: trizen -Sy --aur --noconfirm
-  register: _result_pacman
+    - name: Upgrade packages from the aur
+      become: yes
+      become_user: "{{ patch_user }}"
+      command: trizen -Sy --aur --noconfirm
+      register: _result_pacman
 
-- name: Upgrade packages from the aur (debug)
-  debug:
-    var: _result_pacman
+    - name: Upgrade packages from the aur (debug)
+      debug:
+        var: _result_pacman
 
+    - name: Set the variable indicating that the patch succeeded
+      set_fact:
+        patch_succeeded: true
+- rescue:
+    - name: Set the variable indicating that the patch failed
+      set_fact:
+        patch_succeeded: false
 
