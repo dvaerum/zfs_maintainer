@@ -1,0 +1,14 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Copy pre-build package of trizen
+  copy:
+    src: trizen-1:1.62-1-any.pkg.tar.xz
+    dest: /tmp/trizen.pkg.tar.xz
+
+- name: Install form the aur
+  command: pacman -U --noconfirm --noprogressbar --needed /tmp/trizen.pkg.tar.xz
+  register: result
+
+- debug:
+    var: result
+  when: debug | default(false)

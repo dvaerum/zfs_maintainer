@@ -14,7 +14,7 @@
     home: "{{ patch_user_home }}"
     system: yes
 
-- name: Check patchmgmt home folder permissions
+- name: Verify patchmgmt home folder permissions
   file:
     path: "{{ patch_user_home }}"
     state: directory
@@ -22,7 +22,7 @@
     group: "{{ patch_user }}"
     mode: 0755
 
-- name: Check patchmgmt log folder
+- name: Verify patchmgmt log folder
   file:
     path: "{{ patch_user_logs }}"
     state: directory
@@ -31,21 +31,19 @@
     group: "{{ patch_user }}"
     mode: 0750
 
-- name: "Make sure that the folder '{{ package_mgmt_data.origin }}' exist"
-  file:
+### TODO: remove this at some point
+- name: "Remove old folder bind {{ package_mgmt_data.new_dst }} -> {{ package_mgmt_data.origin }}"
+  mount:
+    src: "{{ package_mgmt_data.new_dst }}"
     path: "{{ package_mgmt_data.origin }}"
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
+    opts: bind,x-systemd.requires=zfs-mount.service
+    fstype: none
+    state: absent
 
-- name: "Check if there is a mountpoint on the origin path ({{ package_mgmt_data.origin }}) of the package manager data"
-  command: "mountpoint '{{ package_mgmt_data.origin }}'"
-  register: _result
-  failed_when: _result.stderr | count > 0
-
-- set_fact:
-    _not_a_mountpoint: "{{ false if _result.rc == 0 else true }}"
+- name: Check if pacman (origin folder) exist
+  stat:
+    path: "{{ package_mgmt_data.origin }}"
+  register: _package_mgmt_origin_folder
 
 - name: Check if pacman (origin folder) contains any files
   find:
@@ -53,10 +51,12 @@
     patterns: '*'
     file_type: any
     recurse: no
-  when: _not_a_mountpoint
+  when:
+    - _package_mgmt_origin_folder.stat.exists
+    - _package_mgmt_origin_folder.stat.isdir
   register: _search_result
 
-- name: "If the path {{ package_mgmt_data.origin }} is not a mountpoint to {{ package_mgmt_data.dst }}, make it so"
+- name: "If the path {{ package_mgmt_data.origin }} contains data, move it to {{ package_mgmt_data.dst }}"
   block:
     - name: "Delete the folder {{ patch_user_home }}/pacman, if it exist"
       file:
@@ -65,18 +65,16 @@
 
     - name: "Move the folder {{ package_mgmt_data.origin }} -> {{ package_mgmt_data.new_dst }}"
       command: "mv '{{ package_mgmt_data.origin }}' '{{ package_mgmt_data.new_dst }}'"
-
   when:
     - _search_result.matched is defined
     - _search_result.matched > 0
 
-- name: "Mount binding the folder {{ package_mgmt_data.new_dst }} -> {{ package_mgmt_data.origin }}"
-  mount:
-    src: "{{ package_mgmt_data.new_dst }}"
-    path: "{{ package_mgmt_data.origin }}"
-    opts: bind,x-systemd.requires=zfs-mount.service
-    state: mounted
-    fstype: none
+- name: Make sure group wheel is not in the sudoers configuration
+  lineinfile:
+    path: /etc/pacman.conf
+    state: present
+    regexp: '^#?DBPath'
+    line: "DBPath      = {{ package_mgmt_data.new_dst }}"
 
 - name: Make sure the necessary packages are installed
   pacman:
@@ -149,6 +147,9 @@
 
 - name: Configurate & Setup service files
   include: patch_service.yml
+
+- name: Configurate & Setup service files
+  include: gpg.yml
 
 - name: Install/Update the mkinitcpio module
   include: systemd-generator.yml

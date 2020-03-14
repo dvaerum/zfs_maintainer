@@ -1,0 +1,54 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+os_specific: Archlinux
+
+partition:
+  table: msdos
+  boot:
+
+    flags:
+      - lba
+
+kernel_package: linux-aarch64
+
+zfs_packages:
+  - zfs-utils-any
+  - zfs-dkms-any
+
+
+
+
+
+
+
+packages_need_for_atomic_update:
+  - trizen
+  - mkinitcpio-sd-zfs-any
+
+grub_install_target: arm64-efi
+
+mountpoint_efi_partition: /boot
+kernel_path_dir: /kernel
+
+zfs_filesystem_structure:
+  - filesystem: "ROOT"
+
+  - filesystem: "ROOT/{{ ansible_distribution }}"
+    mountpoint: /
+    canmount: noauto
+
+  - filesystem: "data"
+
+  - filesystem: "data/grub"
+    mountpoint: /boot/grub
+
+  - filesystem: "data/var"
+    mountpoint: "/var"
+
+  - filesystem: "data/var/log"
+    acltype: posixacl
+
+  - filesystem: "data/home"
+    mountpoint: /home
+
+  - filesystem: "data/home/{{ admin_user }}"

@@ -1,7 +1,7 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-- name: Install the package manager Trizen
-  include: install_trizen.yml
+# - name: Install the package manager Trizen
+#   include: install_trizen.yml
 
 - name: Install packages
   pacman:
@@ -11,15 +11,19 @@
     update_cache_extra_args: --needed
   register: _result
 
+- name: Install packages (debug)
+  debug:
+    var: _result
+
 - name: Install packages needed for atomic update
   become: yes
   become_user: "{{ patch_user }}"
   command: >- 
     trizen -S --noconfirm --needed --noprogressbar
     {{ packages_need_for_atomic_update | join(' ') }}
-  register: _result_pacman
+  register: _result
 
-- name: Install packages (debug)
+- name: Install packages needed for atomic update (debug)
   debug:
     var: _result
 

@@ -1,0 +1,54 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+os_specific: Archlinux
+
+partition:
+  table: gpt
+  boot:
+    name: EFI
+    flags:
+      - esp
+
+kernel_package: linux-lts
+
+zfs_packages:
+  - zfs-linux-lts
+#  - zfs-dkms
+
+add_extra_repos:
+  - insertbefore: '^\[core\]'
+    block: |
+      [archzfs]
+      Server = http://archzfs.com/$repo/x86_64
+
+packages_need_for_atomic_update:
+  - trizen
+  - mkinitcpio-sd-zfs
+
+grub_install_target: x86_64-efi
+
+mountpoint_efi_partition: /boot/EFI
+kernel_path_dir: /boot
+
+zfs_filesystem_structure:
+  - filesystem: "ROOT"
+
+  - filesystem: "ROOT/{{ ansible_distribution }}"
+    mountpoint: /
+    canmount: noauto
+
+  - filesystem: "data"
+
+  - filesystem: "data/grub"
+    mountpoint: /boot/grub
+
+  - filesystem: "data/var"
+    mountpoint: "/var"
+
+  - filesystem: "data/var/log"
+    acltype: posixacl
+
+  - filesystem: "data/home"
+    mountpoint: /home
+
+  - filesystem: "data/home/{{ admin_user }}"

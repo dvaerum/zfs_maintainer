@@ -1,0 +1,34 @@
+---
+- name: Create the folder path for fish
+  file:
+    path: "{{ patch_user_home }}/.gnupg"
+    state: directory
+    recurse: yes
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0700
+
+- name: Specify the variable 'XDG_RUNTIME_DIR' for bash
+  blockinfile:
+    path: "{{ patch_user_home }}/.gnupg/gpg.conf"
+    create: yes
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0644
+    block: |
+      keyserver-options auto-key-retrieve  
+      auto-key-locate hkp://keys.gnupg.net  
+      keyserver hkp://keys.gnupg.net
+
+- name: Import GPG key for building ZFS
+  become: true
+  become_user: "{{ patch_user }}"
+  command:
+    cmd: "gpg --recv-keys {{ item }}"
+  loop:
+    - 6AD860EED4598027
+  register: _result
+
+- name: Import GPG key for building ZFS (debug)
+  debug:
+    var: _result

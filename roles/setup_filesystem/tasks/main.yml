@@ -18,23 +18,29 @@
 - name: Create boot partition (EFI)
   parted:
     device: "{{ install_device }}"
-    label: gpt
+    label: "{{ partition.table }}"
     part_type: primary
     number: "{{ boot_partition.number }}"
-    name: EFI
+    name: "{{ partition.boot.name | default(omit) }}"
     part_start: "{{ boot_partition.buffer }}MiB"
     part_end: "{{ boot_partition.size + boot_partition.buffer }}MiB"
-    flags:
-      - esp
+    flags: "{{ partition.boot.flags | default(omit) }}"
     unit: MiB
     state: present
+  tags:
+    - create_filesystem
+  register: _result_boot_partition
+
+- name: Create boot partition (EFI) (debug)
+  debug:
+    var: _result_boot_partition
   tags:
     - create_filesystem
     
 - name: Create zfs partition
   parted:
     device: "{{ install_device }}"
-    label: gpt
+    label: "{{ partition.table }}"
     part_type: primary
     number: "{{ zfs_partition.number }}"
     part_start: "{{ boot_partition.size + boot_partition.buffer }}MiB"
@@ -43,19 +49,29 @@
     state: present
   tags:
     - create_filesystem
+  register: _result_zfs_partition
+
+- name: Create zfs partition (debug)
+  debug:
+    var: _result_zfs_partition
+  tags:
+    - create_filesystem
     
 - name: Format boot partition (EFI)
   filesystem:
     dev: "{{ install_device }}{{ boot_partition.number }}"
     fstype: vfat
-    opts: -F 32 -n EFI
+    opts: "-F 32 -n {{ boot_partition.boot.name | default('BOOT') }}"
     force: yes
   tags:
     - create_filesystem
 
 - name: Format zfs partition
   command: >
-    zpool create -d -f -o ashift=13
+    zpool create -d -f
+    -m none
+    -R '{{ next_boot_mountpoint }}'
+    -o ashift=13
     -o feature@allocation_classes=enabled
     -o feature@async_destroy=enabled
     -o feature@bookmarks=enabled
@@ -97,8 +113,37 @@
   tags:
     - create_filesystem
 
+- name: "Config the zpool filesystem {{ root_zfs_pool }}"
+  zfs:
+    name: "{{ root_zfs_pool }}"
+    state: present
+    extra_zfs_properties:
+      mountpoint: none
+      compression: lz4
+  tags:
+    - create_filesystem
+    
+- name: "Config the zpool filesystem"
+  zfs:
+    name: "{{ root_zfs_pool }}/{{ item.filesystem }}"
+    state: present
+    extra_zfs_properties:
+      mountpoint: "{{ item.mountpoint | default(omit) }}"
+      canmount: "{{ item.canmount | default(omit) }}"
+      acltype: "{{ item.acltype | default(omit) }}"
+  with_items: "{{ zfs_filesystem_structure }}"
+  tags:
+    - create_filesystem
+
 - name: "Export the newly create zpool '{{ root_zfs_pool }}'"
   command: "zpool export '{{ root_zfs_pool }}'"
+  tags:
+    - create_filesystem
+
+- name: "Make sure the path '{{ next_boot_mountpoint }}' get removed"
+  file:
+    path: "{{ next_boot_mountpoint }}"
+    state: absent
   tags:
     - create_filesystem
 
@@ -111,91 +156,25 @@
   tags:
     - mount_filesystem
 
-- name: "Config the zpool filesystem {{ root_zfs_pool }}"
-  zfs:
-    name: "{{ root_zfs_pool }}"
-    state: present
-    extra_zfs_properties:
-      mountpoint: none
-      compression: lz4
-  tags:
-    - mount_filesystem
-    
-- name: "Config the zpool filesystem {{ root_zfs_pool }}/ROOT"
-  zfs:
-    name: "{{ root_zfs_pool }}/ROOT"
-    state: present
-    extra_zfs_properties:
-      mountpoint: none
-  tags:
-    - mount_filesystem
-    
-- name: "Config the zpool filesystem {{ root_zfs_pool }}/data"
-  zfs:
-    name: "{{ root_zfs_pool }}/data"
-    state: present
-    extra_zfs_properties:
-      mountpoint: none
-  tags:
-    - mount_filesystem
-    
-- name: "Config the zpool filesystem {{ distro_filesystem_path }}"
-  zfs:
-    name: "{{ distro_filesystem_path }}"
-    state: present
-    extra_zfs_properties:
-      mountpoint: /
-      canmount: noauto
-  tags:
-    - mount_filesystem
-      
 - name: "Manually mount the filesystem '{{ distro_filesystem_path }}'"
   command: "zfs mount '{{ distro_filesystem_path }}'"
   tags:
     - mount_filesystem
-    
-- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/home"
-  zfs:
-    name: "{{ root_zfs_pool }}/data/home"
-    state: present
-    extra_zfs_properties:
-      mountpoint: /home
+
+- name: "Make path to the boot partition"
+  file:
+    path: "{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}"
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
   tags:
     - mount_filesystem
 
-- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/home/{{ admin_user }}"
-  zfs:
-    name: "{{ root_zfs_pool }}/data/home/{{ admin_user }}"
-    state: present
-    extra_zfs_properties:
-      mountpoint: "/home/{{ admin_user }}"
-  tags:
-    - mount_filesystem
-
-- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/grub"
-  zfs:
-    name: "{{ root_zfs_pool }}/data/grub"
-    state: present
-    extra_zfs_properties:
-      mountpoint: "/boot/grub"
-  tags:
-    - mount_filesystem
-
-- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/var"
-  zfs:
-    name: "{{ root_zfs_pool }}/data/var"
-    state: present
-    extra_zfs_properties:
-      mountpoint: /var
-  tags:
-    - mount_filesystem
-
-- name: "Config the zpool filesystem {{ root_zfs_pool }}/data/var/log"
-  zfs:
-    name: "{{ root_zfs_pool }}/data/var/log"
-    state: present
-    extra_zfs_properties:
-      acltype: posixacl
+- name: "Mount the boot partition"
+  command: "mount --verbose '{{ install_device }}{{ boot_partition.number }}' '{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}'"
+  args:
+    warn: no
   tags:
     - mount_filesystem
 

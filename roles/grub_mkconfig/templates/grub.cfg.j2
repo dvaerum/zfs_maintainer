@@ -94,7 +94,7 @@ menuentry 'Arch Linux' --class arch --class gnu-linux --class gnu --class os $me
 	echo	'Loading Linux linux-lts ...'
 	linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 quiet
 	echo	'Loading initial ramdisk ...'
-	initrd	{{ distro_filesystem_path_without_zpool }}@/boot/initramfs-linux-lts.img
+	initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
 }
 submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advanced-00626d4100bac7a1' {
 	menuentry 'Arch Linux, with Linux linux-lts' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-linux-lts-advanced-00626d4100bac7a1' {
@@ -107,7 +107,7 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
 		echo	'Loading Linux linux-lts ...'
 		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 quiet
 		echo	'Loading initial ramdisk ...'
-		initrd	{{ distro_filesystem_path_without_zpool }}@/boot/initramfs-linux-lts.img
+		initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
 	}
 	menuentry 'Arch Linux, with Linux linux-lts (fallback initramfs)' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-linux-lts-fallback-00626d4100bac7a1' {
 		load_video
@@ -119,7 +119,7 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
 		echo	'Loading Linux linux-lts ...'
 		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 quiet
 		echo	'Loading initial ramdisk ...'
-		initrd	{{ distro_filesystem_path_without_zpool }}@/boot/initramfs-linux-lts-fallback.img
+		initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts-fallback.img
 	}
 }
 

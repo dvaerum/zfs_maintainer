@@ -33,7 +33,8 @@ sudo ansible-playbook install_linux.yml \
   -e zpool_number=42 \
   -e admin_user=admin \
   -e admin_pass=password \
-  -e hostname=new-server-1337
+  -e hostname=new-server-1337 \
+  -e @vars/OPERATING_SYSTEM.yml
 ```
 
 ## Extra options
@@ -45,6 +46,8 @@ Set the password for the root user to something different then the *admin_pass* 
 same as **admin_pass_hash** just for the root
 - **zfs_package**  
 Use this variable if you want to specify the package providing ZFS
+- **time_zone**  
+Set time zone. Example: `Europe/Copenhagen`
 
 
 # How does it work?
@@ -74,5 +77,37 @@ This play verify that the update/upgrade of the system was succesful and if it w
 
 
 # TODO
-- Added self installing
-  - Added scheduled patchmgmt
+- Added option to set schedule for patchmgmt
+- ArchlinuxARM
+  - Install 'trizen' before grub_install
+    - Make trizen work with gpg verify verification for AUR packages  
+      gpg --recv-keys 6AD860EED4598027
+      vi ~/.gnupg/gpg.conf  
+      > keyserver-options auto-key-retrieve  
+      > auto-key-locate hkp://keys.gnupg.net  
+      > keyserver hkp://keys.gnupg.net
+  - mkinitcpio needs testing and don't build on aarch64
+    - It may need the 'zfs' hook to build when using the zfs-dkms(-any) packages
+  - Change there the kernel is installed
+    ```
+    dennis@ServerPI ~/zfs_maintainer> diff {,/tmp/pre-pare_next_boot}/etc/mkinitcpio.d/linux-aarch64.preset
+    9c9
+    < default_image="/boot/initramfs-linux.img"
+    ---
+    > default_image="/kernel/initramfs-linux.img"
+    13c13
+    < fallback_image="/boot/initramfs-linux-fallback.img"
+    ---
+    > fallback_image="/kernel/initramfs-linux-fallback.img"
+    ```
+
+
+
+
+
+
+
+
+
+
+
