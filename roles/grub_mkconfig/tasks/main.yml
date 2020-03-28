@@ -19,7 +19,8 @@
       grub_config = Template(
         content_file.read()
       ).render(
-        distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}"
+        distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}",
+        kernel_path_dir = "{{ kernel_path_dir }}"
       )
 
       print(grub_config)
