@@ -21,7 +21,7 @@
     - no_systemd
 
 - name: "Enable user lingering for the Patch Management user '{{ patch_user }}'"
-  command: loginctl enable-linger patch_user
+  command: "loginctl enable-linger {{ patch_user }}"
   when:
     - root_user
     - not no_systemd
