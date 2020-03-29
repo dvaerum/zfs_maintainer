@@ -21,7 +21,7 @@
   vars:
     json_filter: "[?name=='{{ distro_snapshot_path }}'].name"
 
-- name: Create before upgrade snapshot
+- name: Create before_upgrade snapshot
   zfs:
     name: "{{ distro_snapshot_path }}"
     state: present

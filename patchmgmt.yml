@@ -11,6 +11,9 @@
     distro_old_boot_path: "{{ distro_filesystem_path }}_old_boot"
     grub_filesystem_path: "{{ root_zfs_pool }}/data/grub"
 
+  vars_files:
+    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+
 ### TODO: this feature is not implemented yet
 #    snapshots:
 #      - "{{ grub_filesystem_path }}"
@@ -57,6 +60,9 @@
     ansible_chroot_exe: arch-chroot
     distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}_next_boot"
 
+  vars_files:
+    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+
   roles:
     - name: Upgrade All Packages
       role: patch
@@ -75,6 +81,9 @@
     root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
+
+  vars_files:
+    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
 
   tags:
     - post_patch
