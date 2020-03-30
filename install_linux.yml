@@ -3,9 +3,9 @@
 - hosts: localhost
   gather_facts: true
 
-  tags:
-    - setup_base_install
-      
+  vars_files:
+    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+
   vars:
     zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
     root_zfs_pool: "zroot_{{ zpool_number }}"
@@ -62,6 +62,9 @@
   tags:
     - chroot
   
+  vars_files:
+    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+
   vars:
     ansible_chroot_exe: chroot
     zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
@@ -177,6 +180,9 @@
   gather_facts: false
   tags:
     - post-chroot
+
+  vars_files:
+    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
 
   tasks:
     - zfs_facts:

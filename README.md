@@ -48,7 +48,9 @@ same as **admin_pass_hash** just for the root
 Use this variable if you want to specify the package providing ZFS
 - **time_zone**  
 Set time zone. Example: `Europe/Copenhagen`
-
+- **distro_and_arch** 
+There is included one file from the vars folder, which is picked automatically based on the distribution and architecture you are running this playbook on.  
+This variable allows you to overwrite which file is selected. Just be aware that it may not work.
 
 # How does it work?
 A simplified overall step by step explanation for the patch management process.
