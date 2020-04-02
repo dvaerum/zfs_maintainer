@@ -73,9 +73,11 @@
     distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}"
     packages:
       - git
+      - man
       - bash-completion
       - fish
       - vim
+      - tmux
       - openssh
       - ansible
     locale:
