@@ -25,6 +25,11 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/umount {{ next_boot_mountpoint }}{{ bind }}
 {% endfor %}
 
+### Sudo rules which allow the {{ patch_user }} to mount all the bind-mounts listed in the variable 'binds'
+{% for bind in binds %}
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/mount --bind {{ bind }} {{ next_boot_mountpoint }}{{ bind }}
+{% endfor %}
+
 ### Allow user '{{ patch_user }}' to run (arch-)chroot
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/arch-chroot /tmp/pre-pare_next_boot /bin/sh -c *
 
