@@ -87,11 +87,6 @@
       - sshd.service
 
   roles:
-    - name: OS specific setup
-      role: os_specific_setup
-      tags:
-        - os_specific_setup
-
     - name: Config The System For Patch Management
       role: verify_system
       tags:
@@ -100,9 +95,15 @@
       vars:
         no_systemd: true
 
-    - name: Install Grub
-      role: install_grub
+    - name: OS specific setup
+      role: os_specific_setup
       tags:
+        - os_specific_setup
+
+    - name: Install Grub
+      role: grub_install
+      tags:
+        - grub_install
         - install_grub
 
     - name: Config Grub
@@ -170,6 +171,7 @@
       loop:
         - gpg-agent
         - dirmngr
+
 
 - hosts: localhost
   gather_facts: false

@@ -11,20 +11,18 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Sy
 
+### Allow to install the zfs_packages individually without sudo password
+{% for zfs_package in zfs_packages %}
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/{{ zfs_package }}/{{ zfs_package }}-*.pkg.tar.xz -U --asdeps
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/{{ zfs_package }}/{{ zfs_package }}-*.pkg.tar.xz -U
+{% endfor %}}
 
 ### Sudo rule which allow the {{ patch_user }} to do a zfs mount without a password
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/zfs mount zroot*/ROOT/*_next_boot
 
-
 ### Sudo rules which allow the {{ patch_user }} to umount all the bind-mounts listed in the variable 'binds'
 {% for bind in binds %}
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/umount {{ next_boot_mountpoint }}{{ bind }}
-{% endfor %}
-
-
-### Sudo rules which allow the {{ patch_user }} to umount all the bind-mounts listed in the variable 'binds'
-{% for bind in binds %}
-{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/mount --bind {{ bind }} {{ next_boot_mountpoint }}{{ bind }}
 {% endfor %}
 
 ### Allow user '{{ patch_user }}' to run (arch-)chroot
@@ -39,6 +37,5 @@
 ### Allow user '{{ patch_user }}' to reboot the system
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/systemctl reboot
 
-### Allow user '{{ patch_user }}' to overwrite '/boot/grub/grub.cfg' (BETA)
+### Allow user '{{ patch_user }}' to overwrite '/boot/grub/grub.cfg'
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/tee /boot/grub/grub.cfg
-

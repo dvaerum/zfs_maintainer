@@ -59,5 +59,6 @@ TODO: be documented
 ```
 
 ## The aarch64 v5.5 kernel does not support PI 4
-I can get the kernel to boot, but when it just randomly freeze and I have to reboot the PI, so I cannot get any thourght in this project on ArchLinuxARM, until the kernel gets better support upstream, but that should just be a question of time.
+I can get the kernel to boot, but when it just randomly freeze and I have to reboot the PI, so I cannot get any thourght in this project on ArchLinuxARM, until the kernel gets better support upstream, but that should just be a question of time.  
+https://github.com/lategoodbye/rpi-zero/issues/43
 

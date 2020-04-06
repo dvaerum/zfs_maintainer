@@ -36,7 +36,7 @@ kernel_path_dir: /boot
 partition:
   table: gpt
   boot:
-    buffer: 0
+    buffer: 2
     size: 128
     number: 1
     name: EFI

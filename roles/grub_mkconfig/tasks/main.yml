@@ -1,22 +1,31 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
+- name: Reads the entire grub.cfg.j2 file
+  local_action:
+    module: command
+    cmd: "cat {{ playbook_dir }}/roles/grub_mkconfig/templates/grub.cfg.j2"
+  register: _grub_cfg
+
 - name: Generates a new grub.cfg file based on a template
   shell: |
+    echo {{ playbook_dir }}
     cat <<'zzzEOFzzz' | python3 | sudo /usr/bin/tee "/boot/grub/grub.cfg"
     from jinja2 import Template,Environment
     from jinja2.loaders import FileSystemLoader
 
-    with open("roles/grub_mkconfig/templates/grub.cfg.j2", 'r') as content_file:
-      grub_config = Template(
-        content_file.read()
-      ).render(
-        distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}",
-        kernel_path_dir = "{{ kernel_path_dir }}",
-        root_zfs_pool = "{{ root_zfs_pool }}",
-        kernel_boot_cmd_extra = "{{ kernel_boot_cmd_extra }}"
-        consoles = list(map(lambda sc: 'console={}'.format(sc), {{ serial_console }}))
-      )
+    grub_config = Template("""{{_grub_cfg.stdout}}""").render(
+      distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}",
+      kernel_path_dir = "{{ kernel_path_dir }}",
+      root_zfs_pool = "{{ root_zfs_pool }}",
+      kernel_boot_cmd_extra = "{{ kernel_boot_cmd_extra }}",
+      consoles = list(map(lambda sc: 'console={}'.format(sc), {{ serial_console }}))
+    )
 
-      print(grub_config)
+    print(grub_config)
     zzzEOFzzz
+  register: _result
 
+- name: Generates a new grub.cfg file based on a template (Failed)
+  fail:
+    msg: "{{ 'Error:\n{}'.format(_result.stderr_lines | join('\n')) }}"
+  when: _result.stderr_lines | count > 0

@@ -85,42 +85,42 @@ fi
 
 ### BEGIN /etc/grub.d/10_linux ###
 menuentry 'Arch Linux' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-simple-00626d4100bac7a1' {
-	load_video
-	set gfxpayload=keep
-	insmod gzio
-	insmod part_gpt
-	insmod zfs
+  load_video
+  set gfxpayload=keep
+  insmod gzio
+  insmod part_gpt
+  insmod zfs
 
-	echo	'Loading Linux linux-lts ...'
-	linux	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }} zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
-	echo	'Loading initial ramdisk ...'
-	initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
+  echo    'Loading Linux linux-lts ...'
+  linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }} zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
+  echo    'Loading initial ramdisk ...'
+  initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
 }
 submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advanced-00626d4100bac7a1' {
-	menuentry 'Arch Linux, with Linux linux-lts' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-linux-lts-advanced-00626d4100bac7a1' {
-		load_video
-		set gfxpayload=keep
-		insmod gzio
-		insmod part_gpt
-		insmod zfs
+  menuentry 'Arch Linux, with Linux linux-lts' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-linux-lts-advanced-00626d4100bac7a1' {
+    load_video
+    set gfxpayload=keep
+    insmod gzio
+    insmod part_gpt
+    insmod zfs
 
-		echo	'Loading Linux linux-lts ...'
-		linux	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
-		echo	'Loading initial ramdisk ...'
-		initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
-	}
-	menuentry 'Arch Linux, with Linux linux-lts (fallback initramfs)' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-linux-lts-fallback-00626d4100bac7a1' {
-		load_video
-		set gfxpayload=keep
-		insmod gzio
-		insmod part_gpt
-		insmod zfs
+    echo    'Loading Linux linux-lts ...'
+    linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
+    echo    'Loading initial ramdisk ...'
+    initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
+  }
+  menuentry 'Arch Linux, with Linux linux-lts (fallback initramfs)' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-linux-lts-fallback-00626d4100bac7a1' {
+    load_video
+    set gfxpayload=keep
+    insmod gzio
+    insmod part_gpt
+    insmod zfs
 
-		echo	'Loading Linux linux-lts ...'
-		linux	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
-		echo	'Loading initial ramdisk ...'
-		initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts-fallback.img
-	}
+    echo    'Loading Linux linux-lts ...'
+    linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
+    echo    'Loading initial ramdisk ...'
+    initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts-fallback.img
+  }
 }
 
 ### END /etc/grub.d/10_linux ###

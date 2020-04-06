@@ -1,0 +1,36 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Find the the block device of the zpool
+  command: "zpool status -PL {{ root_zfs_pool }}"
+  register: _result
+
+- name: Find the the block device of the zpool (set_fact)
+  set_fact:
+    zpool_device_block: "{{ _result.stdout | regex_search('/dev/[^ ]+') | regex_replace('^/dev/(.+)[0-9]+$', '\\1') }}"
+
+- debug:
+    var: ansible_devices[zpool_device_block]
+  when: debug | default(false)
+
+- name: Mount the EFI partition by UUID
+  mount:
+    path: "{{ mountpoint_efi_partition }}"
+    src: "UUID={{ ansible_devices[zpool_device_block].partitions[partiton_1].uuid }}"
+    fstype: vfat
+    state: mounted
+  vars:
+    partiton_1: "{{ zpool_device_block }}1"
+
+- name: Install the Grub package
+  pacman:
+    name:
+      - grub
+      - efibootmgr
+    state: latest
+    update_cache: yes
+    update_cache_extra_args: --needed
+
+- name: Install Grub as the boot loader
+  shell: |
+    export ZPOOL_VDEV_NAME_PATH=1
+    grub-install --target={{ grub_install_target }} --efi-directory={{ mountpoint_efi_partition }} --removable
