@@ -11,7 +11,10 @@
         content_file.read()
       ).render(
         distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}",
-        kernel_path_dir = "{{ kernel_path_dir }}"
+        kernel_path_dir = "{{ kernel_path_dir }}",
+        root_zfs_pool = "{{ root_zfs_pool }}",
+        kernel_boot_cmd_extra = "{{ kernel_boot_cmd_extra }}"
+        consoles = list(map(lambda sc: 'console={}'.format(sc), {{ serial_console }}))
       )
 
       print(grub_config)

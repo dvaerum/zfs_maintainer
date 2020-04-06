@@ -72,7 +72,7 @@ if loadfont $font ; then
   insmod gfxterm
 fi
 terminal_input console
-terminal_output gfxterm
+terminal_output console #gfxterm
 if [ x$feature_timeout_style = xy ] ; then
   set timeout_style=menu
   set timeout=5
@@ -92,7 +92,7 @@ menuentry 'Arch Linux' --class arch --class gnu-linux --class gnu --class os $me
 	insmod zfs
 
 	echo	'Loading Linux linux-lts ...'
-	linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 quiet
+	linux	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }} zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
 	echo	'Loading initial ramdisk ...'
 	initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
 }
@@ -105,7 +105,7 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
 		insmod zfs
 
 		echo	'Loading Linux linux-lts ...'
-		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 quiet
+		linux	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
 		echo	'Loading initial ramdisk ...'
 		initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
 	}
@@ -117,7 +117,7 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
 		insmod zfs
 
 		echo	'Loading Linux linux-lts ...'
-		linux	{{ distro_filesystem_path_without_zpool }}@/boot/vmlinuz-linux-lts rw console=tty0 console=ttyS0,115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 quiet
+		linux	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
 		echo	'Loading initial ramdisk ...'
 		initrd	{{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts-fallback.img
 	}

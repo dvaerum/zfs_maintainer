@@ -20,10 +20,10 @@
     device: "{{ install_device }}"
     label: "{{ partition.table }}"
     part_type: primary
-    number: "{{ boot_partition.number }}"
+    number: "{{ partition.boot.number }}"
     name: "{{ partition.boot.name | default(omit) }}"
-    part_start: "{{ boot_partition.buffer }}MiB"
-    part_end: "{{ boot_partition.size + boot_partition.buffer }}MiB"
+    part_start: "{{ partition.boot.buffer }}MiB"
+    part_end: "{{ partition.boot.size + partition.boot.buffer }}MiB"
     flags: "{{ partition.boot.flags | default(omit) }}"
     unit: MiB
     state: present
@@ -42,8 +42,8 @@
     device: "{{ install_device }}"
     label: "{{ partition.table }}"
     part_type: primary
-    number: "{{ zfs_partition.number }}"
-    part_start: "{{ boot_partition.size + boot_partition.buffer }}MiB"
+    number: "{{ partition.zfs.number }}"
+    part_start: "{{ partition.boot.size + partition.boot.buffer }}MiB"
     part_end: "100%"
     unit: MiB
     state: present
@@ -59,9 +59,9 @@
     
 - name: Format boot partition (EFI)
   filesystem:
-    dev: "{{ install_device }}{{ boot_partition.number }}"
+    dev: "{{ install_device }}{{ partition.boot.number }}"
     fstype: vfat
-    opts: "-F 32 -n {{ boot_partition.boot.name | default('BOOT') }}"
+    opts: "-F 32 -n {{ partition.boot.boot.name | default('BOOT') }}"
     force: yes
   tags:
     - create_filesystem
@@ -89,7 +89,7 @@
     -o feature@spacemap_v2=enabled
     -o feature@userobj_accounting=enabled
     -o feature@zpool_checkpoint=enabled
-    '{{ root_zfs_pool }}' '{{ install_device }}{{ zfs_partition.number }}'
+    '{{ root_zfs_pool }}' '{{ install_device }}{{ partition.zfs.number }}'
   register: result
   tags:
     - create_filesystem
@@ -172,7 +172,7 @@
     - mount_filesystem
 
 - name: "Mount the boot partition"
-  command: "mount --verbose '{{ install_device }}{{ boot_partition.number }}' '{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}'"
+  command: "mount --verbose '{{ install_device }}{{ partition.boot.number }}' '{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}'"
   args:
     warn: no
   tags:

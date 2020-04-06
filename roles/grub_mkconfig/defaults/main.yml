@@ -1,2 +1,3 @@
 ---
-# defaults file for patch
+serial_console: []
+kernel_boot_cmd_extra: ""

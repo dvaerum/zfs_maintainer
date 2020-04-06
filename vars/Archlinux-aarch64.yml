@@ -2,13 +2,6 @@
 ---
 os_specific: Archlinux
 
-partition:
-  table: msdos
-  boot:
-
-    flags:
-      - lba
-
 kernel_package: linux-aarch64
 
 zfs_packages:
@@ -21,14 +14,36 @@ zfs_packages:
 
 
 
+systemd:
+  network:
+    device_name: eth*
+
 packages_need_for_atomic_update:
   - trizen
   - mkinitcpio-sd-zfs-any
 
 grub_install_target: arm64-efi
 
+kernel_boot_cmd_extra: "rootwait plymouth.enable=0 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 kgdboc=ttyAMA0,115200 elevator=noop"
+
+serial_console:
+  - tty1
+  - ttyAMA0,115200
+
 mountpoint_efi_partition: /boot
 kernel_path_dir: /kernel
+
+partition:
+  table: msdos
+  boot:
+    buffer: 0
+    size: 256
+    number: 1
+
+    flags:
+      - lba
+  zfs:
+    number: 2
 
 zfs_filesystem_structure:
   - filesystem: "ROOT"

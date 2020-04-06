@@ -21,13 +21,6 @@
       role: setup_filesystem
       tags:
         - setup_filesystem
-      vars:
-        boot_partition:
-          buffer: 0
-          size: 128
-          number: 1
-        zfs_partition:
-          number: 2
           
   post_tasks:
     - name: Install base linux environment

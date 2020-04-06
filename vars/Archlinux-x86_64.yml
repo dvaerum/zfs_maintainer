@@ -2,13 +2,6 @@
 ---
 os_specific: Archlinux
 
-partition:
-  table: gpt
-  boot:
-    name: EFI
-    flags:
-      - esp
-
 kernel_package: linux-lts
 
 zfs_packages:
@@ -21,14 +14,36 @@ add_extra_repos:
       [archzfs]
       Server = http://archzfs.com/$repo/x86_64
 
+systemd:
+  network:
+    device_name: en*
+
 packages_need_for_atomic_update:
   - trizen
   - mkinitcpio-sd-zfs
 
 grub_install_target: x86_64-efi
 
+kernel_boot_cmd_extra: ""
+
+serial_console:
+  - tty0
+  - ttyS0,115200
+
 mountpoint_efi_partition: /boot/EFI
 kernel_path_dir: /boot
+
+partition:
+  table: gpt
+  boot:
+    buffer: 0
+    size: 128
+    number: 1
+    name: EFI
+    flags:
+      - esp
+  zfs:
+    number: 2
 
 zfs_filesystem_structure:
   - filesystem: "ROOT"
