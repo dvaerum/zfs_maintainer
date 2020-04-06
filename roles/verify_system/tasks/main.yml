@@ -84,6 +84,7 @@
     state: present
     update_cache_extra_args: --needed
 
+### TODO: find a way to use "visudo -cf" to verify that the file is valid
 - name: Install the sudo rule for Patch Management
   template:
     src: "patchmgmt.j2"
