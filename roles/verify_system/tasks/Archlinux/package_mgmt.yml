@@ -1,0 +1,15 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Change the location of the pacman database
+  lineinfile:
+    path: /etc/pacman.conf
+    state: present
+    regexp: '^#?DBPath'
+    line: "DBPath      = {{ package_mgmt_data.new_dst }}"
+
+- name: Enable color in pacman
+  lineinfile:
+    path: /etc/pacman.conf
+    state: present
+    regexp: '^#?Color'
+    line: "Color"

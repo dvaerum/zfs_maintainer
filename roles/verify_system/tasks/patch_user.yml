@@ -1,0 +1,32 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Verify patchmgmt group
+  group:
+    name: "{{ patch_user }}"
+    system: yes
+
+- name: Verify patchmgmt user
+  user:
+    name: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    comment: Patch Management
+    state: present
+    home: "{{ patch_user_home }}"
+    system: yes
+
+- name: Verify patchmgmt home folder permissions
+  file:
+    path: "{{ patch_user_home }}"
+    state: directory
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0755
+
+- name: Verify patchmgmt log folder
+  file:
+    path: "{{ patch_user_logs }}"
+    state: directory
+    recurse: yes
+    owner: "{{ patch_user }}"
+    group: "{{ patch_user }}"
+    mode: 0750

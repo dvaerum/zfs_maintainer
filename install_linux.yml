@@ -124,6 +124,7 @@
       tags:
         - test
 
+### TODO: Don't have the loop variables hardcoded
     - name: Fake mounts for 
       mount:
           path: "{{ item }}"

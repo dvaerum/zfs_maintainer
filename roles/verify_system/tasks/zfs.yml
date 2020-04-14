@@ -1,0 +1,38 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Set the max memory that the ZFS Arc is allowed to use
+  copy:
+    content: |
+      options zfs zfs_arc_max={{ zfs_arc_max }}
+    dest: "/etc/modprobe.d/zfs.conf"
+    owner: root
+    group: root
+    mode: 0644
+  when: root_user
+
+- name: Check for the zfs binary
+  stat:
+    path: /usr/bin/zfs
+  register: _zfs_stat
+
+- name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
+  command: >-
+    zfs allow -l
+    {{ patch_user }}
+    mount,create
+    {{ root_zfs_pool }}/ROOT
+  when:
+    - root_user
+    - _zfs_stat.stat.exists
+    - _zfs_stat.stat.isreg
+
+- name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
+  command: >-
+    zfs allow -d
+    {{ patch_user }}
+    mount,snapshot,clone,canmount,mountpoint,destroy,create,rename
+    {{ root_zfs_pool }}/ROOT
+  when:
+    - root_user
+    - _zfs_stat.stat.exists
+    - _zfs_stat.stat.isreg

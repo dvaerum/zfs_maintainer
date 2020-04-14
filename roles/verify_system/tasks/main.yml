@@ -1,35 +1,8 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-- name: Verify patchmgmt group
-  group:
-    name: "{{ patch_user }}"
-    system: yes
+- name: "Config and maintain the patch_user: {{ patch_user }}"
+  include_tasks: "patch_user.yml"
 
-- name: Verify patchmgmt user
-  user:
-    name: "{{ patch_user }}"
-    group: "{{ patch_user }}"
-    comment: Patch Management
-    state: present
-    home: "{{ patch_user_home }}"
-    system: yes
-
-- name: Verify patchmgmt home folder permissions
-  file:
-    path: "{{ patch_user_home }}"
-    state: directory
-    owner: "{{ patch_user }}"
-    group: "{{ patch_user }}"
-    mode: 0755
-
-- name: Verify patchmgmt log folder
-  file:
-    path: "{{ patch_user_logs }}"
-    state: directory
-    recurse: yes
-    owner: "{{ patch_user }}"
-    group: "{{ patch_user }}"
-    mode: 0750
 
 ### TODO: remove this at some point
 - name: "Remove old folder bind {{ package_mgmt_data.new_dst }} -> {{ package_mgmt_data.origin }}"
@@ -40,8 +13,9 @@
     fstype: none
     state: absent
 
+
 ### Config Package Manager
-- name: Check if pacman (origin folder) exist
+- name: Check if package manager DB (origin folder) exist
   stat:
     path: "{{ package_mgmt_data.origin }}"
   register: _package_mgmt_origin_folder
@@ -70,75 +44,24 @@
     - _search_result.matched is defined
     - _search_result.matched > 0
 
-- name: Change the location of the pacman database
-  lineinfile:
-    path: /etc/pacman.conf
-    state: present
-    regexp: '^#?DBPath'
-    line: "DBPath      = {{ package_mgmt_data.new_dst }}"
+- name: "Config package manager"
+  include_tasks: "{{ os }}/package_mgmt.yml"
 
-- name: Enable color in pacman
-  lineinfile:
-    path: /etc/pacman.conf
-    state: present
-    regexp: '^#?Color'
-    line: "Color"
-
-- name: Make sure the necessary packages are installed
-  pacman:
-    name: 
-      - arch-install-scripts
-      - python-jmespath
-      - python-jinja
-    state: present
-    update_cache_extra_args: --needed
 
 ### TODO: find a way to use "visudo -cf" to verify that the file is valid
 - name: Install the sudo rule for Patch Management
   template:
-    src: "patchmgmt.j2"
+    src: "patchmgmt/{{ os }}.j2"
     dest: "/etc/sudoers.d/patchmgmt"
     owner: root
     group: root
     mode: 0440
   when: root_user
 
-- name: Set the max memory that the ZFS Arc is allowed to use
-  copy:
-    content: |
-      options zfs zfs_arc_max={{ zfs_arc_max }}
-    dest: "/etc/modprobe.d/zfs.conf"
-    owner: root
-    group: root
-    mode: 0644
-  when: root_user
 
-- name: Check for the zfs binary
-  stat:
-    path: /usr/bin/zfs
-  register: _zfs_stat
+- name: "Config ZFS"
+  include_tasks: "zfs.yml"
 
-- name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
-  command: >-
-    zfs allow -l
-    {{ patch_user }}
-    mount,create
-    {{ root_zfs_pool }}/ROOT
-  when:
-    - root_user
-    - _zfs_stat.stat.exists
-    - _zfs_stat.stat.isreg
-
-- name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
-  command: >-
-    zfs allow -d
-    {{ patch_user }}
-    mount,snapshot,clone,canmount,mountpoint,destroy,create,rename
-    {{ root_zfs_pool }}/ROOT
-  when:
-    - root_user
-    - _zfs_stat.stat.exists
-    - _zfs_stat.stat.isreg
 
 - name: Check for the git binary
   stat:
