@@ -1,13 +1,5 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-- name: "Mount binding the folder {{ package_mgmt_data.new_dst }} -> {{ package_mgmt_data.origin }}"
-  mount:
-    src: "{{ package_mgmt_data.new_dst }}"
-    path: "{{ package_mgmt_data.origin }}"
-    opts: bind,x-systemd.requires=zfs-mount.service
-    state: mounted
-    fstype: none
-
 - block:
     - name: Run pacman
       pacman:
@@ -23,11 +15,24 @@
       become: yes
       become_user: "{{ patch_user }}"
       command: trizen -Sy --aur --noconfirm
-      register: _result_pacman
+      register: _result_trizen
+      failed_when:
+        - _result_trizen | json_query(filter) | count > 0 or _result_trizen.rc != 0
+      vars:
+        filter: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+
+    # TODO: remove this when the filter has been confirmed to work
+    - name: Install ZFS packages - Trizen (debug)
+      debug:
+        var:
+          - _result_trizen | json_query(filter) | count > 0
+          - _result_trizen.rc != 0
+      vars:
+        filter: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
 
     - name: Upgrade packages from the aur (debug)
       debug:
-        var: _result_pacman
+        var: _result_trizen
 
     - name: Set the variable indicating that the patch succeeded
       set_fact:

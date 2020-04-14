@@ -1,0 +1,129 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: "Make sure that the folder '{{ kernel_path_dir }}' exist"
+  file:
+    path: "{{ kernel_path_dir }}"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0755
+
+### Install Trizen packages manager
+- name: Copy pre-build package of trizen
+  copy:
+    src: trizen-1:1.63-1-any.pkg.tar.xz
+    dest: /tmp/trizen.pkg.tar.xz
+
+- name: Install form the aur
+  command: pacman -U --noconfirm --noprogressbar --needed /tmp/trizen.pkg.tar.xz
+  register: result
+
+- debug:
+    var: result
+  when: debug | default(false)
+
+### Added 3rd-party Repo
+- name: Add the repository
+  blockinfile:
+    path: /etc/pacman.conf
+    insertbefore: "{{ item.insertbefore }}"
+    block: "{{ item.block }}"
+  with_items: "{{ add_extra_repos }}"
+  when: add_extra_repos is defined
+
+### Install the Linux kernel
+- name: Install kernel packages
+  pacman:
+    name:
+      - "{{ kernel_package }}"
+      - "{{ kernel_package }}-headers"
+    state: latest
+    update_cache: yes
+    update_cache_extra_args: --needed
+  register: _result
+
+- name: Install packages (debug)
+  debug:
+    var: _result
+
+### Install ZFS packages
+- name: Install ZFS packages - Trizen
+  become: yes
+  become_user: "{{ patch_user }}"
+  command: >-
+    trizen -S --noconfirm --needed --noprogressbar
+    {{ zfs_packages | join(' ') }}
+  register: _result
+  failed_when:
+    - _result | json_query(filter) | count > 0 or _result.rc != 0
+  vars:
+    filter: "result_trizen_zfs_packages.stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+
+# TODO: remove this when the filter has been confirmed to work
+- name: Install ZFS packages - Trizen (debug)
+  debug:
+    var:
+      - _result | json_query(filter) | count > 0
+      - _result.rc != 0
+  vars:
+    filter: "result_trizen_zfs_packages.stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+
+- name: Install ZFS packages - Trizen (debug)
+  debug:
+    var: _result
+
+### Install packages needed for atomic update
+- name: Install packages needed for atomic update
+  become: yes
+  become_user: "{{ patch_user }}"
+  command: >-
+    trizen -S --noconfirm --needed --noprogressbar
+    {{ packages_need_for_atomic_update_from_the_aur | join(' ') }}
+  register: _result
+
+- name: Install packages needed for atomic update (debug)
+  debug:
+    var: _result
+
+### Installing OS Packages
+- name: Install packages
+  pacman:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+    update_cache_extra_args: --needed
+  register: _result
+
+- name: Install packages (debug)
+  debug:
+    var: _result
+
+### Config mkinitcpio
+- name: "Config the /etc/mkinitcpio.d/{{ kernel_package }}.preset file"
+  replace:
+    path: "/etc/mkinitcpio.d/{{ kernel_package }}.preset"
+    regexp: ^([a-z]+_image="?).*(/initramfs.+\.img"?)
+    replace: \1{{ kernel_path_dir }}\2
+
+- name: Set the HOOKS needed in mkinitcpio.conf
+  lineinfile:
+    path: /etc/mkinitcpio.conf
+    regexp: '^HOOKS='
+    #line: HOOKS=(base systemd systemd-tool block autodetect modconf keyboard sd-patchmgmt sd-zfs filesystems)
+    line: HOOKS=(base systemd block autodetect modconf keyboard sd-patchmgmt sd-zfs filesystems)
+
+- name: Generate initcpio
+  command: mkinitcpio -P
+  register: _result
+  ignore_errors: true
+
+- name: Generate initcpio (debug)
+  debug:
+    var: _result
+
+- name: Generate initcpio (fail)
+  fail:
+    msg: "One or more kernel module was unable to build"
+  when: _result | json_query(filter) | count > 0 or _result.rc != 0
+  vars:
+    filter: "result_mkinitcpio.stderr_lines[?contains(@, 'ERROR: module not found')]"

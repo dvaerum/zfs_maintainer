@@ -40,6 +40,7 @@
     fstype: none
     state: absent
 
+### Config Package Manager
 - name: Check if pacman (origin folder) exist
   stat:
     path: "{{ package_mgmt_data.origin }}"
@@ -69,18 +70,26 @@
     - _search_result.matched is defined
     - _search_result.matched > 0
 
-- name: Make sure group wheel is not in the sudoers configuration
+- name: Change the location of the pacman database
   lineinfile:
     path: /etc/pacman.conf
     state: present
     regexp: '^#?DBPath'
     line: "DBPath      = {{ package_mgmt_data.new_dst }}"
 
+- name: Enable color in pacman
+  lineinfile:
+    path: /etc/pacman.conf
+    state: present
+    regexp: '^#?Color'
+    line: "Color"
+
 - name: Make sure the necessary packages are installed
   pacman:
     name: 
       - arch-install-scripts
       - python-jmespath
+      - python-jinja
     state: present
     update_cache_extra_args: --needed
 

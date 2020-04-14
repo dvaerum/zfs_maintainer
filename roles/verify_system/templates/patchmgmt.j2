@@ -16,6 +16,7 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/{{ zfs_package }}/{{ zfs_package }}-*.pkg.tar.xz -U --asdeps
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/{{ zfs_package }}/{{ zfs_package }}-*.pkg.tar.xz -U
 {% endfor %}
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -S --noprogressbar --noconfirm --needed {{ zfs_packages | join(' ') }}
 
 ### Sudo rule which allow the {{ patch_user }} to do a zfs mount without a password
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/zfs mount zroot*/ROOT/*_next_boot

@@ -1,4 +1,7 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-- name: Install the package manager Trizen
-  include_tasks: "{{ os_specific }}.yml"
+- name: Install & Config the OS and architecture specific stuff
+  include_tasks: "os_{{ os }}-{{ architecture }}.yml"
+
+- name: Install & Config the OS specific stuff
+  include_tasks: "os_{{ os }}.yml"

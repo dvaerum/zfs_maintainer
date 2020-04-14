@@ -1,0 +1,68 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Install Raspberry-PI bootloader & firmware packages
+  pacman:
+    name:
+      - raspberrypi-bootloader
+      - raspberrypi-bootloader-x
+      - firmware-raspberrypi
+      - uboot-raspberrypi
+      - uboot-tools
+    state: latest
+    update_cache: yes
+    update_cache_extra_args: --needed
+  register: _result
+
+- name: Install packages (debug)
+  debug:
+    var: _result
+
+- name: Config /boot/boot.txt
+  copy:
+    content: |
+
+      load mmc 0:1 ${loadaddr} EFI/BOOT/BOOTAA64.EFI
+      bootefi ${loadaddr}
+
+    dest: "/boot/boot.txt"
+    owner: root
+    group: root
+    mode: 0444
+
+- name: Generate /boot/boot.scr (u-boot script)
+  command: >-
+    mkimage -A arm 
+    -O linux
+    -T script
+    -C none
+    -n "U-Boot boot script"
+    -d /boot/boot.txt
+    /boot/boot.scr
+
+### Config pacman hook for copying the kernel to {{ kernel_path_dir }}
+- name: "Make sure that the folder /etc/pacman.d/hooks exist"
+  file:
+    path: "/etc/pacman.d/hooks"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0755
+
+- name: Create pacman hook for copying the kernel
+  copy:
+    content: |
+      [Trigger]
+      Type = Package
+      Operation = Install
+      Operation = Upgrade
+      Target = {{ kernel_package }}
+
+      [Action]
+      Description = Copy the kernel from the /boot to {{ kernel_path_dir }} ...
+      When = PostTransaction
+      Exec = /usr/bin/cp /boot/Image /boot/Image.gz {{ kernel_path_dir }}
+    dest: "/etc/pacman.d/hooks/copy_kernel.hook"
+    owner: root
+    group: root
+    mode: 0444
+

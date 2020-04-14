@@ -21,10 +21,10 @@
       role: setup_filesystem
       tags:
         - setup_filesystem
-          
+
   post_tasks:
     - name: Install base linux environment
-      command: "pacstrap '{{ next_boot_mountpoint }}' base base-devel linux-firmware python inetutils"
+      command: "pacstrap '{{ next_boot_mountpoint }}' base base-devel linux-firmware python python-jinja inetutils"
       tags:
         - install_base_linux_env
 
@@ -54,7 +54,7 @@
 
   tags:
     - chroot
-  
+
   vars_files:
     - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
 
@@ -64,15 +64,6 @@
     root_zfs_pool: "zroot_{{ zpool_number }}"
     distro_filesystem_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}"
     distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}"
-    packages:
-      - git
-      - man
-      - bash-completion
-      - fish
-      - vim
-      - tmux
-      - openssh
-      - ansible
     locale:
       - en_DK
       - da_DK

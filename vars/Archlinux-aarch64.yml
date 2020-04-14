@@ -1,8 +1,11 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-os_specific: Archlinux
+os: Archlinux
+architecture: aarch64
 
 kernel_package: linux-aarch64
+
+shell_to_use: /usr/bin/fish
 
 zfs_packages:
   - zfs-utils-any
@@ -18,9 +21,19 @@ systemd:
   network:
     device_name: eth*
 
-packages_need_for_atomic_update:
+packages_need_for_atomic_update_from_the_aur:
   - trizen
   - mkinitcpio-sd-zfs-any
+
+packages:
+  - git
+  - man
+  - bash-completion
+  - fish
+  - vim
+  - tmux
+  - openssh
+  - ansible
 
 grub_install_target: arm64-efi
 
@@ -32,11 +45,14 @@ serial_console:
 
 mountpoint_efi_partition: /boot
 kernel_path_dir: /kernel
+kernel_filename: "Image"
+initrd_filename: "initramfs-linux.img"
+initrd_fallback_filename: "initramfs-linux-fallback.img"
 
 partition:
   table: msdos
   boot:
-    buffer: 0
+    buffer: 1
     size: 256
     number: 1
 

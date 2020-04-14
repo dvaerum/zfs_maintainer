@@ -1,32 +1,5 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-# - name: Install the package manager Trizen
-#   include: install_trizen.yml
-
-- name: Install packages
-  pacman:
-    name: "{{ packages }}"
-    state: latest
-    update_cache: yes
-    update_cache_extra_args: --needed
-  register: _result
-
-- name: Install packages (debug)
-  debug:
-    var: _result
-
-- name: Install packages needed for atomic update
-  become: yes
-  become_user: "{{ patch_user }}"
-  command: >- 
-    trizen -S --noconfirm --needed --noprogressbar
-    {{ packages_need_for_atomic_update | join(' ') }}
-  register: _result
-
-- name: Install packages needed for atomic update (debug)
-  debug:
-    var: _result
-
 - name: Check that the time zone exists
   stat:
     path: "/usr/share/zoneinfo/{{ time_zone }}"
@@ -70,10 +43,6 @@
     group: root
     mode: 0644
 
-# TODO: Check if this task should be moved to the role verify_system
-- name: Config mkinitcpio
-  include: mkinitcpio.yml
-
 - name: Allow members of the 'wheel' group to use sudo
   copy:
     content: "%wheel ALL=(ALL) ALL"
@@ -82,56 +51,5 @@
     group: root
     mode: 0440
 
-- name: "Create hash of the password for the user '{{ admin_user }}'"
-  command: >-
-    python3 -c "import crypt; print(crypt.crypt('{{ admin_pass }}'))"
-  when: admin_pass_hash is not defined
-  register: admin_pass_hash
-
-- name: "Create hash of the password for the user '{{ admin_user }} (set_fact)'"
-  set_fact:
-    admin_pass_hash: "{{ admin_pass_hash.stdout }}"
-  when: admin_pass_hash.stdout is defined
-
-- name: Create hash of the password for the user root
-  command: >-
-    python3 -c "import crypt; print(crypt.crypt('{{ root_pass }}'))"
-  when: 
-    - root_pass_hash is not defined
-    - root_pass is defined
-  register: _root_pass_hash
-
-- name: Create hash of the password for the user root (set_fact)
-  set_fact:
-    root_pass_hash: "{{ root_pass_hash | default(_root_pass_hash.stdout) | default(admin_pass_hash) }}"
-
-- name: Set password for root
-  user:
-    name: root
-    shell: /usr/bin/fish
-    password: "{{ root_pass_hash }}"
-
-- name: Add the group for the admin user
-  group:
-    name: "{{ admin_user }}"
-    system: no
-
-- name: Add the admin user
-  user:
-    name: "{{ admin_user }}"
-    group: "{{ admin_user }}"
-    groups: wheel
-    password: "{{ admin_pass_hash }}"
-    state: present
-    home: "/home/{{ admin_user }}"
-    shell: /usr/bin/fish
-    system: no
-    update_password: on_create
-
-- name: Set the correct permissions for the home folder of the admin user
-  file:
-    path: "/home/{{ admin_user }}"
-    state: directory
-    owner: "{{ admin_user }}"
-    group: "{{ admin_user }}"
-    mode: 0700
+- name: Setup admin & root user
+  include: manage_users.yml

@@ -92,9 +92,9 @@ menuentry 'Arch Linux' --class arch --class gnu-linux --class gnu --class os $me
   insmod zfs
 
   echo    'Loading Linux linux-lts ...'
-  linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }} zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
+  linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/{{ kernel_filename }} rw {{ consoles | join(' ') }} zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
   echo    'Loading initial ramdisk ...'
-  initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
+  initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/{{ initrd_filename }}
 }
 submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advanced-00626d4100bac7a1' {
   menuentry 'Arch Linux, with Linux linux-lts' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-linux-lts-advanced-00626d4100bac7a1' {
@@ -105,9 +105,9 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
     insmod zfs
 
     echo    'Loading Linux linux-lts ...'
-    linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
+    linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/{{ kernel_filename }} rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
     echo    'Loading initial ramdisk ...'
-    initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts.img
+    initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/{{ initrd_filename }}
   }
   menuentry 'Arch Linux, with Linux linux-lts (fallback initramfs)' --class arch --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-linux-lts-fallback-00626d4100bac7a1' {
     load_video
@@ -117,9 +117,9 @@ submenu 'Advanced options for Arch Linux' $menuentry_id_option 'gnulinux-advance
     insmod zfs
 
     echo    'Loading Linux linux-lts ...'
-    linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/vmlinuz-linux-lts rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
+    linux   {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/{{ kernel_filename }} rw {{ consoles | join(' ') }},115200 zfs_ignorecache=1 zfs_force=1 root=zfs:AUTO rpool={{ root_zfs_pool }} loglevel=3 {{ kernel_boot_cmd_extra }}
     echo    'Loading initial ramdisk ...'
-    initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/initramfs-linux-lts-fallback.img
+    initrd  {{ distro_filesystem_path_without_zpool }}@{{ kernel_path_dir }}/{{ initrd_fallback_filename }}
   }
 }
 

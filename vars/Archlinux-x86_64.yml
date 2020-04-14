@@ -1,12 +1,15 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-os_specific: Archlinux
+os: Archlinux
+architecture: x86_64
 
 kernel_package: linux-lts
 
+shell_to_use: /usr/bin/fish
+
 zfs_packages:
-  - zfs-linux-lts
-#  - zfs-dkms
+#  - zfs-linux-lts
+  - zfs-dkms-git-any
 
 add_extra_repos:
   - insertbefore: '^\[core\]'
@@ -18,9 +21,19 @@ systemd:
   network:
     device_name: en*
 
-packages_need_for_atomic_update:
+packages_need_for_atomic_update_from_the_aur:
   - trizen
   - mkinitcpio-sd-zfs
+
+packages:
+  - git
+  - man
+  - bash-completion
+  - fish
+  - vim
+  - tmux
+  - openssh
+  - ansible
 
 grub_install_target: x86_64-efi
 
@@ -32,6 +45,9 @@ serial_console:
 
 mountpoint_efi_partition: /boot/EFI
 kernel_path_dir: /boot
+kernel_filename: "vmlinuz-{{ kernel_package }}"
+initrd_filename: "initramfs-{{ kernel_package }}.img"
+initrd_fallback_filename: "initramfs-{{ kernel_package }}-fallback.img"
 
 partition:
   table: gpt
