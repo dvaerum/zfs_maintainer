@@ -101,13 +101,18 @@
         - unmount_next_boot
 
   post_tasks:
-    - name: Delete clone and snapshot, because patch failed
-      zfs:
-        name: "{{ item }}"
-        state: absent
-      loop:
-        - "{{ distro_next_boot_path }}"
-        - "{{ distro_snapshot_path }}"
+    - block:
+        - name: Delete clone and snapshot, because patch failed
+          zfs:
+            name: "{{ item }}"
+            state: absent
+          loop:
+            - "{{ distro_next_boot_path }}"
+            - "{{ distro_snapshot_path }}"
+
+        - name: "Patch Management Failed :("
+          fail:
+            msg: "Patch Management failed, hopefully to goes better next time. Clean have been performed"
       when: not hostvars['/tmp/pre-pare_next_boot'].patch_succeeded
 
     - name: Set bootfs (zpool prop) to the next_boot
