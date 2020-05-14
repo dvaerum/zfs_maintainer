@@ -1,13 +1,5 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-- name: "Mount binding the folder {{ package_mgmt_data.new_dst }} -> {{ package_mgmt_data.origin }}"
-  mount:
-    src: "{{ package_mgmt_data.new_dst }}"
-    path: "{{ package_mgmt_data.origin }}"
-    opts: bind,x-systemd.requires=zfs-mount.service
-    state: mounted
-    fstype: none
-
 - block:
     - name: Run pacman
       pacman:
