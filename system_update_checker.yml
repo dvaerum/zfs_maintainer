@@ -14,9 +14,7 @@
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
     distro_old_boot_path: "{{ distro_filesystem_path }}_old_boot"
     distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}"
-
-#  pre_tasks:
-#    - meta: end_play
+    number_of_snapshots_to_keep: 10
 
   roles:
     - name: Config Grub
@@ -25,11 +23,12 @@
         - config_grub
 
   post_tasks:
-    - zfs_facts:
-        name:
+    - name: Import informations about ZFS
+      zfs_facts:
+        name: "{{ root_zfs_pool }}"
         recurse: yes
 
-    - name: The last things after a successful upgrade
+    - name: After a successful upgrade remove old filesystem
       block:
         - name: "Destroy the old filesystem '{{ distro_old_boot_path }}'"
           zfs:
@@ -49,6 +48,20 @@
       vars:
         filter_1: "[?name=='{{ distro_snapshot_path }}']"
         filter_2: "[?name=='{{ distro_old_boot_path }}'].origin"
+
+    - name: Updated informations about ZFS
+      zfs_facts:
+        name: "{{ distro_filesystem_path }}"
+        recurse: yes
+
+    - name: Remove old snapshots
+      zfs:
+        name: "{{ item }}"
+        state: absent
+      loop: "{{ (ansible_zfs_datasets | to_json | from_json | json_query(filter_1) | sort(reverse=True))[number_of_snapshots_to_keep:] }}"
+      vars:
+        filter_1: "[?type=='snapshot' && starts_with(name, '{{ distro_filesystem_path }}@')].name"
+
 
 
 #    - name: The last things after a successful upgrade

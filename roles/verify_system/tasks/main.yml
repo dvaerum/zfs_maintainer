@@ -74,6 +74,7 @@
   git:
     repo: 'https://github.com/dvaerum/zfs_maintainer.git'
     dest: "{{ patch_user_home }}/atomic_update"
+    update: no
   when:
     - _git_stat.stat.exists
     - _git_stat.stat.isreg
