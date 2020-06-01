@@ -1,0 +1,14 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Install base linux environment
+  command:
+    cmd: >-
+      "pacstrap '{{ next_boot_mountpoint }}'
+      base
+      base-devel
+      linux-firmware
+      python
+      python-jinja
+      inetutils"
+  tags:
+    - install_base_linux_env

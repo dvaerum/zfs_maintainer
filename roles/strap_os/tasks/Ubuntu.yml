@@ -1,0 +1,83 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+# - name: "Download ubuntu prebuild image"
+#   unarchive:
+#     src: "http://cdimage.ubuntu.com/releases/18.04.4/release/ubuntu-18.04.4-preinstalled-server-arm64+raspi3.img.xz"
+#     dest: /tmp/ubuntu-18.04.4-preinstalled-server-arm64.img
+#     mode: '0644'
+#   register: _result
+
+# - name:
+#   debug:
+#     var: _result
+
+# - name: ""
+#   command:
+#     cmd: kpartx -av /tmp/ubuntu-18.04.4-preinstalled-server-arm64.img
+#   register: _result
+
+# - name:
+#   debug:
+#     var: _result
+
+- name: Set /bin/sh to point to the bash shell
+  file:
+    path: "{{ next_boot_mountpoint }}/{{ item }}"
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+  loop:
+    - usr/bin
+    - usr/lib
+
+- name: Set /bin/sh to point to the bash shell
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ next_boot_mountpoint }}/{{ item.dest }}"
+    state: link
+    force: yes
+    owner: root
+    group: root
+  loop:
+    - src: usr/bin
+      dest: bin
+    - src: usr/bin
+      dest: sbin
+    - src: usr/lib
+      dest: lib
+
+- name: Install base linux environment
+  command:
+    cmd: >-
+      debootstrap
+      --verbose
+      --merged-usr
+      --arch {{ architecture }}
+      --keyring '{{playbook_dir}}/roles/{{role_name}}/files/ubuntu-archive-keyring.gpg'
+      bionic
+      '{{ next_boot_mountpoint }}'
+#      'http://ports.ubuntu.com/ubuntu-ports/'
+  register: _result
+
+- name: Install base linux environment (debug)
+  debug:
+    var: _result
+
+- name: Set /bin/sh to point to the bash shell
+  file:
+    src: bash
+    dest: "{{ next_boot_mountpoint }}/bin/sh"
+    state: link
+    owner: root
+    group: root
+
+# - name: "Create profile bash script"
+#   blockinfile:
+#     path: "{{ next_boot_mountpoint }}/etc/bash.bashrc"
+#     insertbefore: BOF
+#     block: |
+#       #!/bin/bash
+#       source /etc/environment
+#       export PATH
+

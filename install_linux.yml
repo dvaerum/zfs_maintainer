@@ -4,7 +4,8 @@
   gather_facts: true
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   vars:
     zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
@@ -22,11 +23,10 @@
       tags:
         - setup_filesystem
 
-  post_tasks:
-    - name: Install base linux environment
-      command: "pacstrap '{{ next_boot_mountpoint }}' base base-devel linux-firmware python python-jinja inetutils"
+    - name: asda
+      role: strap_os
       tags:
-        - install_base_linux_env
+        - strap_os
 
 
 - hosts: localhost
@@ -56,7 +56,8 @@
     - chroot
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   vars:
     ansible_chroot_exe: chroot
@@ -171,7 +172,8 @@
     - post-chroot
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   tasks:
     - zfs_facts:
