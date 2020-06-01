@@ -1,46 +1,6 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-architecture: aarch64
-
-kernel_package: linux-aarch64
-
-shell_to_use: /usr/bin/fish
-
-zfs_packages:
-  - zfs-utils-any
-  - zfs-dkms-any
-
-
-
-
-
-
-
-systemd:
-  network:
-    device_name: eth*
-
-packages_need_for_atomic_update_from_the_aur:
-  - trizen
-  - mkinitcpio-sd-zfs-any
-
-packages:
-  - git
-  - man
-  - bash-completion
-  - fish
-  - vim
-  - tmux
-  - openssh
-  - ansible
-
-grub_install_target: arm64-efi
-
-kernel_boot_cmd_extra: "rootwait plymouth.enable=0 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 kgdboc=ttyAMA0,115200 elevator=noop"
-
-serial_console:
-  - tty1
-  - ttyAMA0,115200
+architecture: arm64
 
 mountpoint_efi_partition: /boot
 kernel_path_dir: /kernel

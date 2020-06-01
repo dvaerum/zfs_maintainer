@@ -6,7 +6,8 @@
   gather_facts: true
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   vars:
     root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"
