@@ -3,6 +3,8 @@
   - [Extra options](#extra-options)
 - [How does it work?](#how-does-it-work)
 - [The different playbooks](#the-different-playbooks)
+- [Tips & Ticks](#tips--ticks)
+  - [Install Ubuntu from Archlinux](#install-ubuntu-from-archlinux)
 - [TODO](#todo)
 
 # Intro
@@ -48,9 +50,9 @@ same as **admin_pass_hash** just for the root
 Use this variable if you want to specify the package providing ZFS
 - **time_zone**  
 Set time zone. Example: `Europe/Copenhagen`
-- **distro_and_arch** 
-There is included one file from the vars folder, which is picked automatically based on the distribution and architecture you are running this playbook on.  
-This variable allows you to overwrite which file is selected. Just be aware that it may not work.
+- **overwrite_distribution & overwrite_machine**  
+There are 2 files from the vars folder included, which are picked automatically based on the distribution and machine/architecture you are running this playbook on.  
+This variable allows you to overwrite which files are selected. Just be aware that it may not work.
 
 # How does it work?
 A simplified overall step by step explanation for the patch management process.
@@ -76,18 +78,20 @@ This playbook handle the updating/upgrating of the OS.
 - **system_update_checker.yml**  
 This play verify that the update/upgrade of the system was succesful and if it was, cleans the last bits up. If it wasn't a succesful update/upgrade it reboot the system into the previous boot enviroment.
 
+# Tips & Ticks
+## Install Ubuntu from Archlinux
+Ubuntu still have file in `/bin`, `/sbin` & `/lib` so you need to add this path to the global/export'ed `PATH` variable, before running running the Ansible Playbook.
+```
+# fish
+set --export PATH "$PATH:/bin:/sbin:/lib"
 
+# bash
+export "PATH=$PATH:/bin:/sbin:/lib"
+```
 
 # TODO
 - Added option to set schedule for patchmgmt
 - ArchlinuxARM
-  - Install 'trizen' before grub_install
-    - Make trizen work with gpg verify verification for AUR packages  
-      gpg --recv-keys 6AD860EED4598027
-      vi ~/.gnupg/gpg.conf  
-      > keyserver-options auto-key-retrieve  
-      > auto-key-locate hkp://keys.gnupg.net  
-      > keyserver hkp://keys.gnupg.net
   - mkinitcpio needs testing and don't build on aarch64
     - It may need the 'zfs' hook to build when using the zfs-dkms(-any) packages
   - Change there the kernel is installed

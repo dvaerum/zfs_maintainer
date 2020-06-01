@@ -1,6 +1,5 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-os: Archlinux
 architecture: x86_64
 
 kernel_package: linux-lts
@@ -9,7 +8,7 @@ shell_to_use: /usr/bin/fish
 
 zfs_packages:
 #  - zfs-linux-lts
-  - zfs-dkms-git-any
+  - zfs-dkms-any
 
 add_extra_repos:
   - insertbefore: '^\[core\]'
