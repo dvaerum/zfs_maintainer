@@ -16,6 +16,9 @@
     grub_config = Template("""{{_grub_cfg.stdout}}""").render(
       distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}",
       kernel_path_dir = "{{ kernel_path_dir }}",
+      kernel_filename = "{{ kernel_filename }}",
+      initrd_filename = "{{ initrd_filename }}",
+      initrd_fallback_filename = "{{ initrd_fallback_filename }}",
       root_zfs_pool = "{{ root_zfs_pool }}",
       kernel_boot_cmd_extra = "{{ kernel_boot_cmd_extra }}",
       consoles = list(map(lambda sc: 'console={}'.format(sc), {{ serial_console }}))
