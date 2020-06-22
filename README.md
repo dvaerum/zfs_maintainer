@@ -91,6 +91,8 @@ export "PATH=$PATH:/bin:/sbin:/lib"
 
 # TODO
 - Added option to set schedule for patchmgmt
+- Make the code there generate the grub.cfg file failed if some variables are un-defined  
+  `roles/grub_mkconfig/tasks/main.yml`
 - ArchlinuxARM
   - mkinitcpio needs testing and don't build on aarch64
     - It may need the 'zfs' hook to build when using the zfs-dkms(-any) packages
