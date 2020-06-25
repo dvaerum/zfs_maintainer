@@ -43,5 +43,6 @@
 ### Allow user '{{ patch_user }}' to reboot the system
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/systemctl reboot
 
-### Allow user '{{ patch_user }}' to overwrite '/boot/grub/grub.cfg'
+### Allow user '{{ patch_user }}' to read & overwrite '/boot/grub/grub.cfg'
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/tee /boot/grub/grub.cfg
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/cat /boot/grub/grub.cfg

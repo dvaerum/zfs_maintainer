@@ -80,8 +80,6 @@ This play verify that the update/upgrade of the system was succesful and if it w
 
 # TODO
 - Added option to set schedule for patchmgmt
-- Make the code there generate the grub.cfg file failed if some variables are un-defined  
-  `roles/grub_mkconfig/tasks/main.yml`
 - Make the grub menu expose bootable snapshots of the root filesystem with datetime for when they was created
 - ArchlinuxARM
   - Install 'trizen' before grub_install
