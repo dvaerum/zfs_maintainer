@@ -6,25 +6,35 @@
     cmd: "cat {{ playbook_dir }}/roles/grub_mkconfig/templates/grub.cfg.j2"
   register: _grub_cfg
 
+- name: Read the grub.cfg file for backup
+  command: "sudo cat /boot/grub/grub.cfg"
+  register: _old_grub_cfg
+
 - name: Generates a new grub.cfg file based on a template
   shell: |
-    echo {{ playbook_dir }}
     cat <<'zzzEOFzzz' | python3 | sudo /usr/bin/tee "/boot/grub/grub.cfg"
-    from jinja2 import Template,Environment
-    from jinja2.loaders import FileSystemLoader
+    import sys
+    from jinja2 import Template, Environment, StrictUndefined
+    from jinja2.exceptions import UndefinedError
 
-    grub_config = Template("""{{_grub_cfg.stdout}}""").render(
-      distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}",
-      kernel_path_dir = "{{ kernel_path_dir }}",
-      kernel_filename = "{{ kernel_filename }}",
-      initrd_filename = "{{ initrd_filename }}",
-      initrd_fallback_filename = "{{ initrd_fallback_filename }}",
-      root_zfs_pool = "{{ root_zfs_pool }}",
-      kernel_boot_cmd_extra = "{{ kernel_boot_cmd_extra }}",
-      consoles = list(map(lambda sc: 'console={}'.format(sc), {{ serial_console }}))
-    )
+    template = Template("""{{_grub_cfg.stdout}}""")
+    template.environment.undefined = StrictUndefined
 
-    print(grub_config)
+    try:
+      grub_config = template.render(
+        distro_filesystem_path_without_zpool = "{{ distro_filesystem_path_without_zpool }}",
+        kernel_path_dir = "{{ kernel_path_dir }}",
+        kernel_filename = "{{ kernel_filename }}",
+        initrd_filename = "{{ initrd_filename }}",
+        initrd_fallback_filename = "{{ initrd_fallback_filename }}",
+        root_zfs_pool = "{{ root_zfs_pool }}",
+        kernel_boot_cmd_extra = "{{ kernel_boot_cmd_extra }}",
+        consoles = list(map(lambda sc: 'console={}'.format(sc), {{ serial_console }}))
+      )
+      print(grub_config)
+    except UndefinedError as e:
+      print(e, file=sys.stderr)
+      print("""{{ _old_grub_cfg.stdout }}""")
     zzzEOFzzz
   register: _result
 
