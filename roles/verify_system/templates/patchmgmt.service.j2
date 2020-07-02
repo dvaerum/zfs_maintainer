@@ -11,5 +11,8 @@ ansible-playbook patchmgmt.yml'
 
 ExecStartPost=/usr/bin/sudo /usr/bin/systemctl reboot
 
+Restart=on-failure
+RestartSec=1day
+
 [Install]
 WantedBy=default.target

@@ -91,6 +91,7 @@ export "PATH=$PATH:/bin:/sbin:/lib"
 
 # TODO
 - Added option to set schedule for patchmgmt
+- Make the grub menu expose bootable snapshots of the root filesystem with datetime for when they was created
 - ArchlinuxARM
   - mkinitcpio needs testing and don't build on aarch64
     - It may need the 'zfs' hook to build when using the zfs-dkms(-any) packages

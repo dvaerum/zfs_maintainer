@@ -13,3 +13,5 @@
     state: present
     regexp: '^#?Color'
     line: "Color"
+  when: root_user
+
