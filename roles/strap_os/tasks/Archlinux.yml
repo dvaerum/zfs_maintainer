@@ -3,12 +3,12 @@
 - name: Install base linux environment
   command:
     cmd: >-
-      "pacstrap '{{ next_boot_mountpoint }}'
+      pacstrap '{{ next_boot_mountpoint }}'
       base
       base-devel
       linux-firmware
       python
       python-jinja
-      inetutils"
+      inetutils
   tags:
     - install_base_linux_env
