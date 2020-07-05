@@ -182,7 +182,8 @@
 
     - name: Initiate variable 'root_zfs_pool'
       set_fact:
-        root_zfs_pool: "{{ ansible_zfs_datasets | json_query(filter) | first | regex_replace('/.+', '') }}"
+        # the workaround is to added 'to_json | from_json' and when it work (it is magic)
+        root_zfs_pool: "{{ ansible_zfs_datasets | to_json | from_json | json_query(filter) | first | regex_replace('/.+', '') }}"
       vars:
         filter: "[?mountpoint=='{{ next_boot_mountpoint }}'].name"
 

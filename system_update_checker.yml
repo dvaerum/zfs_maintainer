@@ -59,6 +59,7 @@
       zfs:
         name: "{{ item }}"
         state: absent
+      # the workaround is to added 'to_json | from_json' and when it work (it is magic)
       loop: "{{ (ansible_zfs_datasets | to_json | from_json | json_query(filter_1) | sort(reverse=True))[number_of_snapshots_to_keep:] }}"
       vars:
         filter_1: "[?type=='snapshot' && starts_with(name, '{{ distro_filesystem_path }}@')].name"

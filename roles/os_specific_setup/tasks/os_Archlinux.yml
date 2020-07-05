@@ -55,7 +55,8 @@
     {{ zfs_packages | join(' ') }}
   register: _result
   failed_when:
-    - _result | json_query(filter) | count > 0 or _result.rc != 0
+    # the workaround is to added 'to_json | from_json' and when it work (it is magic)
+    - _result | to_json | from_json | json_query(filter) | count > 0 or _result.rc != 0
   vars:
     filter: "result_trizen_zfs_packages.stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
 
@@ -63,7 +64,8 @@
 - name: Install ZFS packages - Trizen (debug)
   debug:
     var:
-      - _result | json_query(filter) | count > 0
+    # the workaround is to added 'to_json | from_json' and when it work (it is magic)
+      - _result | to_json | from_json | json_query(filter) | count > 0
       - _result.rc != 0
   vars:
     filter: "result_trizen_zfs_packages.stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
@@ -124,6 +126,7 @@
 - name: Generate initcpio (fail)
   fail:
     msg: "One or more kernel module was unable to build"
-  when: _result | json_query(filter) | count > 0 or _result.rc != 0
+  # the workaround is to added 'to_json | from_json' and when it work (it is magic)
+  when: _result |  to_json | from_json | json_query(filter) | count > 0 or _result.rc != 0
   vars:
     filter: "result_mkinitcpio.stderr_lines[?contains(@, 'ERROR: module not found')]"
