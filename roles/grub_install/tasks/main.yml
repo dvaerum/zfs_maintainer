@@ -6,20 +6,23 @@
 
 - name: Find the the block device of the zpool (set_fact)
   set_fact:
-    zpool_device_block: "{{ _result.stdout | regex_search('/dev/[^ ]+') | regex_replace('^/dev/(.+)[0-9]+$', '\\1') }}"
+    zpool_block_device_partition: "{{ _result.stdout | regex_search('/dev/[^ ]+') }}"
 
-- debug:
-    var: ansible_devices[zpool_device_block]
+- name: Mount the EFI partition by UUID (debug)
+  debug:
+    var: ansible_devices | json_query(filter)
   when: debug | default(false)
+  vars:
+    filter: '*.partitions[]["nvme0n1p1"][]["uuid"][]'
 
 - name: Mount the EFI partition by UUID
   mount:
     path: "{{ mountpoint_efi_partition }}"
-    src: "UUID={{ ansible_devices[zpool_device_block].partitions[partiton_1].uuid }}"
+    src: "UUID={{ ansible_devices | json_query(filter) | first }}"
     fstype: vfat
     state: mounted
   vars:
-    partiton_1: "{{ zpool_device_block }}1"
+    filter: '*.partitions[]["nvme0n1p1"][]["uuid"][]'
 
 - name: Install the Grub package
   pacman:
