@@ -6,9 +6,17 @@
     cmd: "cat {{ playbook_dir }}/roles/grub_mkconfig/templates/grub.cfg.j2"
   register: _grub_cfg
 
+- name: Check if /boot/grub/grub.cfg exists
+  stat:
+    path: /boot/grub/grub.cfg
+  register: _result
+
 - name: Read the grub.cfg file for backup
   command: "sudo cat /boot/grub/grub.cfg"
   register: _old_grub_cfg
+  when:
+    - _result.stat.exists
+    - _result.stat.isreg
 
 - name: Generates a new grub.cfg file based on a template
   shell: |
@@ -33,9 +41,15 @@
       )
       print(grub_config)
     except UndefinedError as e:
+      stdout = """{{ _old_grub_cfg.stdout | default('') }}"""
+      if stdout:
+        print(stdout)
+      else:
+        print('ERROR: There was no /boot/grub/grub.cfg to backup\n\n', file=sys.stderr)
       print(e, file=sys.stderr)
-      print("""{{ _old_grub_cfg.stdout }}""")
     zzzEOFzzz
+  args:
+    warn: no
   register: _result
 
 - name: Generates a new grub.cfg file based on a template (Failed)
