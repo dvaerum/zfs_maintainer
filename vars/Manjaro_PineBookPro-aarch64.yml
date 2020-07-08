@@ -2,8 +2,8 @@
 ---
 architecture: aarch64
 
-kernel_package: linux-aarch64
-uboot_package: uboot-raspberrypi
+kernel_package: linux-pinebookpro
+uboot_package: uboot-pinebookpro
 
 shell_to_use: /usr/bin/fish
 
@@ -17,9 +17,9 @@ zfs_packages:
 
 
 
-systemd:
-  network:
-    device_name: eth*
+#systemd:
+#  network:
+#    device_name: eth*
 
 packages_need_for_atomic_update_from_the_aur:
   - trizen

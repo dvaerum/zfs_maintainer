@@ -6,7 +6,7 @@
       - raspberrypi-bootloader
       - raspberrypi-bootloader-x
       - firmware-raspberrypi
-      - uboot-raspberrypi
+      - "{{ uboot_package }}"
       - uboot-tools
     state: latest
     update_cache: yes
