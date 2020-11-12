@@ -35,16 +35,22 @@
             name: "{{ distro_old_boot_path }}"
             state: absent
 
+        - name: Get the creation time of the snapshot
+          shell: >-
+            date --utc "--date=@$(zfs get creation -Hpo value {{ distro_snapshot_path }})"
+          changed_when: false
+          register: _snapshot_creation_datetime
+
         - name: "Rename to snapshot '{{ distro_snapshot_path }}'"
           command:
             cmd: "zfs rename '{{ distro_snapshot_path }}' '{{ distro_filesystem_path }}@{{ datetime }}'"
             warn: no
           vars:
-            datetime: "{{ lookup('pipe', 'date --utc --date=@$(zfs get creation -Hpo value {{ distro_snapshot_path }})') | regex_replace(' ', '_') }}"
+            datetime: "{{ _snapshot_creation_datetime.stdout | regex_replace(' ', '_') }}"
       when:
         - ansible_zfs_datasets | json_query(filter_1) | count > 0
         - ansible_zfs_datasets | json_query(filter_2) | count > 0
-        - ansible_zfs_datasets | json_query(filter_2) | first == '{{ distro_snapshot_path }}'
+        - ansible_zfs_datasets | json_query(filter_2) | first == distro_snapshot_path
       vars:
         filter_1: "[?name=='{{ distro_snapshot_path }}']"
         filter_2: "[?name=='{{ distro_old_boot_path }}'].origin"

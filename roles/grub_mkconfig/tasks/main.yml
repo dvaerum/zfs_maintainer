@@ -7,7 +7,9 @@
   register: _grub_cfg
 
 - name: Read the grub.cfg file for backup
-  command: "sudo cat /boot/grub/grub.cfg"
+  command:
+    cmd: "sudo cat /boot/grub/grub.cfg"
+    warn: no
   register: _old_grub_cfg
 
 - name: Generates a new grub.cfg file based on a template
