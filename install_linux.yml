@@ -1,10 +1,12 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-- hosts: localhost
+- name: Check and setup file-system
+  hosts: localhost
   gather_facts: true
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   vars:
     zpool_number: "{{ '{:0>2}'.format( zpool_number ) }}"
@@ -21,15 +23,17 @@
       role: setup_filesystem
       tags:
         - setup_filesystem
+        #- create_filesystem
+        #- mount_filesystem
 
-  post_tasks:
-    - name: Install base linux environment
-      command: "pacstrap '{{ next_boot_mountpoint }}' base base-devel linux-firmware python python-jinja inetutils"
+    - name: Install Base OS
+      role: strap_os
       tags:
-        - install_base_linux_env
+        - strap_os
 
 
-- hosts: localhost
+- name: Setup chroot environment
+  hosts: localhost
   gather_facts: false
   tags:
     - pre-chroot
@@ -48,7 +52,8 @@
       loop: "{{ mounting_chroot }}"
 
 
-- hosts: chroot
+- name: Install Operation System
+  hosts: chroot
   connection: chroot
   gather_facts: true
 
@@ -56,7 +61,8 @@
     - chroot
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   vars:
     ansible_chroot_exe: chroot
@@ -75,6 +81,7 @@
       - zfs-import-scan.service
       - systemd-networkd.service
       - systemd-resolved.service
+      - systemd-timesyncd.service
       - sshd.service
 
   roles:
@@ -117,9 +124,7 @@
 
   post_tasks:
     - name: Enable services
-      service:
-        name: "{{ item }}"
-        enabled: yes
+      command: "systemctl enable {{ item }}"
       loop: "{{ enable_services }}"
       tags:
         - test
@@ -155,23 +160,16 @@
       tags:
         - test
 
-    - name: Stop gpg-agent & dirmngr if running
-      become: true
-      become_user: "{{ patch_user }}"
-      command:
-        cmd: "gpgconf --kill '{{ item }}'"
-      loop:
-        - gpg-agent
-        - dirmngr
 
-
-- hosts: localhost
+- name: Teardown chroot environment
+  hosts: localhost
   gather_facts: false
   tags:
     - post-chroot
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   tasks:
     - zfs_facts:
@@ -180,9 +178,13 @@
 
     - name: Initiate variable 'root_zfs_pool'
       set_fact:
-        root_zfs_pool: "{{ ansible_zfs_datasets | json_query(filter) | first | regex_replace('/.+', '') }}"
+        # the workaround is to added 'to_json | from_json' and when it work (it is magic)
+        root_zfs_pool: "{{ ansible_zfs_datasets | to_json | from_json | json_query(filter) | first | regex_replace('/.+', '') }}"
       vars:
         filter: "[?mountpoint=='{{ next_boot_mountpoint }}'].name"
+
+    - name: "Kill all process there using the {{ next_boot_mountpoint }}"
+      shell: sudo lsof | grep '{{ next_boot_mountpoint }}' | awk '{print $2}' | uniq | sudo xargs -r kill
 
     - name: Umount the entire chroot envirement
       command: "umount --verbose --recursive '{{ next_boot_mountpoint }}'"

@@ -14,6 +14,37 @@
   vars:
     json_filter: "[?name=='{{ distro_filesystem_path }}']"
 
+- block:
+    - name: Check if the snapshot named 'before_upgrade' or the 'next_boot' partition exist
+      command: "sudo umount --recursive '{{ next_boot_mountpoint }}'"
+      failed_when: false
+      register: _failed_patch_umount
+
+    - name: Check if the snapshot named 'before_upgrade' or the 'next_boot' partition exist (debug)
+      debug:
+        var: _failed_patch_umount
+
+    - name: Delete failed next boot update
+      command: "zfs destroy -R '{{ distro_snapshot_path }}'"
+      failed_when: false
+      register: _failed_patch_delete
+
+    - name: Delete failed next boot update (debug)
+      debug:
+        var: _failed_patch_delete
+
+    - name: Re-Gather ZFS fact about the distro partition
+      zfs_facts:
+        name: "{{ distro_filesystem_path }}"
+        recurse: yes
+        type: all
+        properties: all
+
+  when: ansible_zfs_datasets | json_query(json_snapshot_filter) | count == 1 or ansible_zfs_datasets | json_query(json_next_boot_filter) | count == 1
+  vars:
+    json_snapshot_filter: "[?name=='{{ distro_snapshot_path }}'].name"
+    json_next_boot_filter: "[?name=='{{ distro_next_boot_path }}'].name"
+
 - name: Check that the snapshot named 'before_upgrade' doesn't exist
   fail:
     msg: "The snapshot '{{ distro_snapshot_path }}' is not suppose to exist"

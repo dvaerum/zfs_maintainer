@@ -1,12 +1,56 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
+- name: Create pacman keys
+  command: pacman-key --init
+  register: _result
+
+- name: Create pacman keys (debug)
+  debug:
+    var: _result
+
+- name: "Find all the keyring packages"
+  find:
+    path: /var/cache/pacman/pkg
+    patterns: "^({{ keyring_packages | join('|') }}).+[.](xz|zst)$"
+    use_regex: yes
+  register: _keyring_package_paths
+
+- name: "Find all the keyring packages (debug)"
+  debug:
+    var: _keyring_package_paths | json_query('files[*].path')
+
+- name: "Find all the keyring packages (set_fact)"
+  set_fact:
+    _keyring_package_paths: "{{ _keyring_package_paths | json_query('files[*].path') }}"
+
+- name: "Find all the keyring packages (debug)"
+  debug:
+    var: _keyring_package_paths
+
+- name: "Find all the keyring packages (fail)"
+  fail:
+    msg: "Something is wrong, there are suppose to be a equal amount of entries in keyring_packages (count: {{ keyring_packages }} and _keyring_package_paths (count: {{ _keyring_package_paths }}))"
+  when: _keyring_package_paths | count != keyring_packages | count
+
+- name: "Install keyring for {{ os }}"
+  shell: "pacman -U --noconfirm {{ _keyring_package_paths | join(' ') }} || pacman-key --populate"
+  register: _result
+  until:
+    - _result | json_query("stdout_lines[?@ == '==> Locally signing trusted keys in keyring...']") | count == keyring_packages | count
+  retries: 10
+  delay: 10
+
+- name: "Install keyring for {{ os }} (debug)"
+  debug:
+    var: _result
+
 - name: Install Raspberry-PI bootloader & firmware packages
   pacman:
     name:
       - raspberrypi-bootloader
       - raspberrypi-bootloader-x
       - firmware-raspberrypi
-      - uboot-raspberrypi
+      - "{{ uboot_package }}"
       - uboot-tools
     state: latest
     update_cache: yes

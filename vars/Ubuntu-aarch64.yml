@@ -1,0 +1,44 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+architecture: arm64
+
+mountpoint_efi_partition: /boot
+kernel_path_dir: /kernel
+kernel_filename: "Image"
+initrd_filename: "initramfs-linux.img"
+initrd_fallback_filename: "initramfs-linux-fallback.img"
+
+partition:
+  table: msdos
+  boot:
+    buffer: 1
+    size: 256
+    number: 1
+
+    flags:
+      - lba
+  zfs:
+    number: 2
+
+zfs_filesystem_structure:
+  - filesystem: "ROOT"
+
+  - filesystem: "ROOT/{{ ansible_distribution }}"
+    mountpoint: /
+    canmount: noauto
+
+  - filesystem: "data"
+
+  - filesystem: "data/grub"
+    mountpoint: /boot/grub
+
+  - filesystem: "data/var"
+    mountpoint: "/var"
+
+  - filesystem: "data/var/log"
+    acltype: posixacl
+
+  - filesystem: "data/home"
+    mountpoint: /home
+
+  - filesystem: "data/home/{{ admin_user }}"

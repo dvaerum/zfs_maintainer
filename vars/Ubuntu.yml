@@ -1,0 +1,9 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+os: Ubuntu
+
+package_mgmt_data:
+  origin: "/var/lib/pacman"
+  new_dst: "/patchmgmt/pacman"
+
+# ansible_executable: /bin/bash

@@ -5,7 +5,8 @@
   gather_facts: true
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   vars:
     root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"
@@ -32,15 +33,15 @@
       tags:
         - stop_if_root
 
-    - name: Snapshot & Clone The ROOT (/) Filesystem
-      role: snapshot_and_clone
-      tags:
-        - zfs_checks
-
     - name: Unmount The List of Binds (in case they was mounted - can easily happen in testing)
       role: umount_binds
       tags:
         - mount_binds
+
+    - name: Snapshot & Clone The ROOT (/) Filesystem
+      role: snapshot_and_clone
+      tags:
+        - zfs_checks
 
     - name: Mount The List of Binds
       role: mount_binds
@@ -56,7 +57,8 @@
     - patch
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   vars: 
     root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"
@@ -79,7 +81,8 @@
   gather_facts: true
 
   vars_files:
-    - "vars/{{ distro_and_arch | default('{}-{}'.format(ansible_distribution, ansible_machine)) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
+    - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
 
   vars:
     root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"

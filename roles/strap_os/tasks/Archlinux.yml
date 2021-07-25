@@ -1,0 +1,32 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
+- name: Create custom pacman.conf file
+  template:
+    src: "pacman.conf.j2"
+    dest: "/tmp/.linux_install_pacman.conf"
+  when:
+    - use_custom_pacman
+
+- name: Install base linux environment
+  command:
+    cmd: >-
+      pacstrap {{ "-G -M -C '/tmp/.linux_install_pacman.conf'" if use_custom_pacman }} '{{ next_boot_mountpoint }}'
+      base
+      base-devel
+      linux-firmware
+      python
+      python-jinja
+      inetutils
+  tags:
+    - install_base_linux_env
+
+# This is done, because we packages are needed later and this is the easisted way to get them onto the system
+- name: "Install keyring for {{ os }}"
+  command:
+    cmd: >-
+      pacstrap {{ "-G -M -C '/tmp/.linux_install_pacman.conf'" if use_custom_pacman }} '{{ next_boot_mountpoint }}'
+      {{ keyring_packages | join(' ') }}
+  tags:
+    - install_base_linux_env
+  when: keyring_packages | count > 0
+

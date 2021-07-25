@@ -56,10 +56,31 @@
     var: _result_zfs_partition
   tags:
     - create_filesystem
-    
+
+- name: Guess partition prefix, if any
+  stat:
+    path: "{{ install_device }}{{ item }}{{ partition.boot.number }}"
+  register: _partition_prefix
+  with_items:
+    - ''
+    - 'p'
+
+- name: Guess partition prefix, if any (debug)
+  debug:
+    var: _partition_prefix
+  when: debug | default(false)
+  tags:
+    - create_filesystem
+
+- name: Guess partition prefix, if any (set_facts)
+  set_fact:
+    _partition_prefix: "{{ _partition_prefix | json_query(_filter) | first }}"
+  vars:
+    _filter: "results[?stat.exists].item"
+
 - name: Format boot partition (EFI)
   filesystem:
-    dev: "{{ install_device }}{{ partition.boot.number }}"
+    dev: "{{ install_device }}{{ _partition_prefix }}{{ partition.boot.number }}"
     fstype: vfat
     opts: "-F 32 -n {{ partition.boot.boot.name | default('BOOT') }}"
     force: yes
@@ -89,7 +110,7 @@
     -o feature@spacemap_v2=enabled
     -o feature@userobj_accounting=enabled
     -o feature@zpool_checkpoint=enabled
-    '{{ root_zfs_pool }}' '{{ install_device }}{{ partition.zfs.number }}'
+    '{{ root_zfs_pool }}' '{{ install_device }}{{ _partition_prefix }}{{ partition.zfs.number }}'
   register: result
   tags:
     - create_filesystem
@@ -149,7 +170,7 @@
 
 - name: "Re-import the newly create zpool '{{ root_zfs_pool }}'"
   command: > 
-    zpool import -N
+    zpool import -f -N
     -d '/dev/disk/by-id'
     -R '{{ next_boot_mountpoint }}'
     '{{ root_zfs_pool }}'
@@ -172,7 +193,7 @@
     - mount_filesystem
 
 - name: "Mount the boot partition"
-  command: "mount --verbose '{{ install_device }}{{ partition.boot.number }}' '{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}'"
+  command: "mount --verbose '{{ install_device }}{{ _partition_prefix }}{{ partition.boot.number }}' '{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}'"
   args:
     warn: no
   tags:

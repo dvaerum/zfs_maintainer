@@ -82,8 +82,8 @@
 - name: Configurate & Setup service files
   include: patch_service.yml
 
-- name: Configurate & Setup service files
-  include: gpg.yml
+#- name: Configurate & Setup service files
+#  include: gpg.yml
 
 - name: Install/Update the mkinitcpio module
   include: systemd-generator.yml

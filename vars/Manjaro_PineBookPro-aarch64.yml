@@ -1,9 +1,9 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-architecture: x86_64
+architecture: aarch64
 
-kernel_package: linux-lts
-
+kernel_package: linux-pinebookpro
+uboot_package: uboot-pinebookpro
 
 shell_to_use: /usr/bin/fish
 
@@ -11,15 +11,15 @@ zfs_packages:
   - zfs-utils
   - zfs-dkms
 
-add_extra_repos:
-  - insertbefore: '^\[core\]'
-    block: |
-      [archzfs]
-      Server = http://archzfs.com/$repo/x86_64
 
-systemd:
-  network:
-    device_name: en*
+
+
+
+
+
+#systemd:
+#  network:
+#    device_name: eth*
 
 packages_need_for_atomic_update_from_the_aur:
   - pikaur
@@ -34,56 +34,48 @@ packages:
   - tmux
   - openssh
   - ansible
-  - python-jmespath
-  - arch-install-scripts
-  - systemd-resolvconf
-  - netctl
-  - dialog
-  - wpa_supplicant
 
-grub_install_target: x86_64-efi
+grub_install_target: arm64-efi
 
-kernel_boot_cmd_extra: ""
+kernel_boot_cmd_extra: "rootwait plymouth.enable=0 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 kgdboc=ttyAMA0,115200 elevator=noop"
 
 serial_console:
-  - tty0
-  - ttyS0,115200
+  - tty1
+  - ttyAMA0,115200
 
-mountpoint_efi_partition: /boot/EFI
-kernel_path_dir: /boot
-kernel_filename: "vmlinuz-{{ kernel_package }}"
-initrd_filename: "initramfs-{{ kernel_package }}.img"
-initrd_fallback_filename: "initramfs-{{ kernel_package }}-fallback.img"
+mountpoint_efi_partition: /boot
+kernel_path_dir: /kernel
+kernel_filename: "Image"
+initrd_filename: "initramfs-linux.img"
+initrd_fallback_filename: "initramfs-linux-fallback.img"
 
 partition:
-  table: gpt
+  table: msdos
   boot:
-    buffer: 4
-    size: 128
+    buffer: 1
+    size: 256
     number: 1
-    name: EFI
+
     flags:
-      - esp
+      - lba
   zfs:
     number: 2
 
-
-
-
-
-
-
-
-
-
-
+use_custom_pacman: true
+custom_pacman:
+  server: https://mirrors.dotsrc.org/manjaro-arm/stable/$repo/$arch
+  color: true
+  repoes:
+    - core
+    - extra
+    - community
 
 
 keyring_packages:
   - archlinux-keyring
   - archlinuxarm-keyring
-
-
+  - manjaro-keyring
+  - manjaro-arm-keyring
 
 zfs_filesystem_structure:
   - filesystem: "ROOT"
@@ -107,4 +99,3 @@ zfs_filesystem_structure:
     mountpoint: /home
 
   - filesystem: "data/home/{{ admin_user }}"
-

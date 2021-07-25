@@ -1,12 +1,9 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-package_mgmt_data:
-  origin: "/var/lib/pacman"
-  new_dst: "/patchmgmt/pacman"
-
 binds:
   - "/var"
   - "/var/log"
   - "/var/cache/pacman/pkg"
+  - "{{ mountpoint_efi_partition }}"
   - "/boot/grub"
 
