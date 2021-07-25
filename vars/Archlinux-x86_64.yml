@@ -35,6 +35,7 @@ packages:
   - openssh
   - ansible
   - python-jmespath
+  - arch-install-scripts
   - systemd-resolvconf
   - netctl
   - dialog
