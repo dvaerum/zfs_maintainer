@@ -29,7 +29,6 @@
         name: "{{ root_zfs_pool }}"
         recurse: yes
 
-    - name: After a successful upgrade remove old filesystem
       block:
         - name: "Destroy the old filesystem '{{ distro_old_boot_path }}'"
           zfs:
@@ -45,7 +44,7 @@
       when:
         - ansible_zfs_datasets | json_query(filter_1) | count > 0
         - ansible_zfs_datasets | json_query(filter_2) | count > 0
-        - ansible_zfs_datasets | json_query(filter_2) | first == '{{ distro_snapshot_path }}'
+        - ansible_zfs_datasets | json_query(filter_2) | first == distro_snapshot_path
       vars:
         filter_1: "[?name=='{{ distro_snapshot_path }}']"
         filter_2: "[?name=='{{ distro_old_boot_path }}'].origin"

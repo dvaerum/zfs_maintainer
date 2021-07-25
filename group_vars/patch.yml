@@ -4,5 +4,6 @@ binds:
   - "/var"
   - "/var/log"
   - "/var/cache/pacman/pkg"
+  - "{{ mountpoint_efi_partition }}"
   - "/boot/grub"
 
