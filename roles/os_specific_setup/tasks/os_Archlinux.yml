@@ -8,14 +8,19 @@
     group: "root"
     mode: 0755
 
-### Install Trizen packages manager
-- name: Copy pre-build package of trizen
+### Install AUR package manager
+- name: Copy pre-build package of the aur package installer
   copy:
-    src: trizen-1:1.63-1-any.pkg.tar.xz
-    dest: /tmp/trizen.pkg.tar.xz
+    src: pikaur-1.7-1-any.pkg.tar.zst
+    dest: /tmp/pikaur.pkg.tar.zst
+  register: _aur_package_installer
 
-- name: Install form the aur
-  command: pacman -U --noconfirm --noprogressbar --needed /tmp/trizen.pkg.tar.xz
+#- name: Packages needed for the AUR installer
+#  command: pacman -Syu --noconfirm --noprogressbar --needed perl-crypt-ssleay
+#  register: result
+
+- name: Install the installer for the AUR
+  command: pacman -U --noconfirm --noprogressbar --needed "{{ _aur_package_installer.dest }}"
   register: result
 
 - debug:
@@ -47,46 +52,46 @@
     var: _result
 
 ### Install ZFS packages
-- name: Install ZFS packages - Trizen
+- name: Install ZFS packages - AUR Package Manager
   become: yes
   become_user: "{{ patch_user }}"
   command: >-
-    trizen -S --noconfirm --needed --noprogressbar
+    pikaur -S --noconfirm --needed --noprogressbar
     {{ zfs_packages | join(' ') }}
   register: _result
 
-- name: Install ZFS packages - Trizen (debug)
+- name: Install ZFS packages - AUR Package Manager (debug)
   debug:
     var: _result
 
-- name: Install ZFS packages - Trizen (set_fact)
+- name: Install ZFS packages - AUR Package Manager (set_fact)
   set_fact:
     _filter_result: "{{ _result | to_json | from_json | json_query(filter) }}"
   vars:
-    filter: "result_trizen_zfs_packages.stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+    filter: "result_pikaur_zfs_packages.stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
 
 # TODO: remove this when the filter has been confirmed to work
-- name: Install ZFS packages - Trizen (debug)
+- name: Install ZFS packages - AUR Package Manager (debug)
   debug:
     msg:
       # the workaround is to added 'to_json | from_json' and when it work (it is magic)
       - "{{ _filter_result }}"
       - "{{ _result.rc != 0 }}"
 
-- name: Install ZFS packages - Trizen (fail)
+- name: Install ZFS packages - AUR Package Manager (fail)
   fail:
     msg: One or more kernel module didn't build or are missing
   # the workaround is to added 'to_json | from_json' and when it work (it is magic)
   when: (not _filter_result == "" and _filter_result | count > 0) or _result.rc != 0
   vars:
-    filter: "result_trizen_zfs_packages.stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+    filter: "result_pikaur_zfs_packages.stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
 
 ### Install packages needed for atomic update
 - name: Install packages needed for atomic update
   become: yes
   become_user: "{{ patch_user }}"
   command: >-
-    trizen -S --noconfirm --needed --noprogressbar
+    pikaur -S --noconfirm --needed --noprogressbar
     {{ packages_need_for_atomic_update_from_the_aur | join(' ') }}
   register: _result
 

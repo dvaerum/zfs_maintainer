@@ -14,27 +14,27 @@
     - name: Upgrade packages from the aur
       become: yes
       become_user: "{{ patch_user }}"
-      command: trizen -Sy --aur --noconfirm
-      register: _result_trizen
+      command: pikaur -Sy --aur --noconfirm
+      register: _result_pikaur
       failed_when:
         # the workaround is to added 'to_json | from_json' and when it work (it is magic)
-        - _result_trizen | to_json | from_json | json_query(filter) | count > 0 or _result_trizen.rc != 0
+        - _result_pikaur | to_json | from_json | json_query(filter) | count > 0 or _result_pikaur.rc != 0
       vars:
         filter: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
 
     # TODO: remove this when the filter has been confirmed to work
-    - name: Install ZFS packages - Trizen (debug)
+    - name: Install ZFS packages - AUR Package Manager (debug)
       debug:
         var:
         # the workaround is to added 'to_json | from_json' and when it work (it is magic)
-          - _result_trizen | to_json | from_json | json_query(filter) | count > 0
-          - _result_trizen.rc != 0
+          - _result_pikaur | to_json | from_json | json_query(filter) | count > 0
+          - _result_pikaur.rc != 0
       vars:
         filter: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
 
     - name: Upgrade packages from the aur (debug)
       debug:
-        var: _result_trizen
+        var: _result_pikaur
 
     - name: Set the variable indicating that the patch succeeded
       set_fact:

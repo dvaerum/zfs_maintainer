@@ -1,3 +1,5 @@
 ---
+
+use_custom_pacman: false
 keyring_packages: []
 

@@ -1,4 +1,5 @@
 ### Sudo rules which allows the {{ patch_user }} user to install packages without a password
+## Using - trizen
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --needed --asdeps
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --needed
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noprogressbar --noconfirm --asdeps
@@ -10,6 +11,16 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Sy --noconfirm
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Sy
+
+## Using - pikaur
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -T
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --upgrade --noconfirm --noprogressbar --needed /{{ patch_user }}/.cache/pikaur/pkg/*
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --upgrade --needed --noconfirm --noprogressbar /{{ patch_user }}/.cache/pikaur/pkg/*
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --upgrade --noprogressbar --needed --noconfirm /{{ patch_user }}/.cache/pikaur/pkg/*
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --upgrade --noconfirm --needed --noprogressbar /{{ patch_user }}/.cache/pikaur/pkg/*
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --upgrade --needed --noprogressbar --noconfirm /{{ patch_user }}/.cache/pikaur/pkg/*
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --upgrade --noprogressbar --noconfirm --needed /{{ patch_user }}/.cache/pikaur/pkg/*
+#{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/
 
 ### Allow to install the zfs_packages individually without sudo password
 {% for zfs_package in zfs_packages %}

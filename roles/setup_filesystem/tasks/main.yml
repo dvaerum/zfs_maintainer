@@ -64,8 +64,6 @@
   with_items:
     - ''
     - 'p'
-  tags:
-    - create_filesystem
 
 - name: Guess partition prefix, if any (debug)
   debug:
@@ -172,7 +170,7 @@
 
 - name: "Re-import the newly create zpool '{{ root_zfs_pool }}'"
   command: > 
-    zpool import -N
+    zpool import -f -N
     -d '/dev/disk/by-id'
     -R '{{ next_boot_mountpoint }}'
     '{{ root_zfs_pool }}'

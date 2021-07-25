@@ -54,7 +54,7 @@
       --verbose
       --merged-usr
       --arch {{ architecture }}
-      --keyring '{{playbook_dir}}/roles/{{role_name}}/files/ubuntu-archive-keyring.gpg'
+      --keyring '{{ playbook_dir }}/roles/{{ role_name }}/files/ubuntu-archive-keyring.gpg'
       bionic
       '{{ next_boot_mountpoint }}'
 #      'http://ports.ubuntu.com/ubuntu-ports/'

@@ -8,8 +8,8 @@ uboot_package: uboot-raspberrypi
 shell_to_use: /usr/bin/fish
 
 zfs_packages:
-  - zfs-utils-any
-  - zfs-dkms-any
+  - zfs-utils
+  - zfs-dkms
 
 
 
@@ -22,8 +22,8 @@ systemd:
     device_name: eth*
 
 packages_need_for_atomic_update_from_the_aur:
-  - trizen
-  - mkinitcpio-sd-zfs-any
+  - pikaur
+  - mkinitcpio-sd-zfs
 
 packages:
   - git
@@ -34,6 +34,11 @@ packages:
   - tmux
   - openssh
   - ansible
+  - python-jmespath
+  - systemd-resolvconf
+  - netctl
+  - dialog
+  - wpa_supplicant
 
 grub_install_target: arm64-efi
 
@@ -52,14 +57,31 @@ initrd_fallback_filename: "initramfs-linux-fallback.img"
 partition:
   table: msdos
   boot:
-    buffer: 1
+    buffer: 4
     size: 256
     number: 1
-
+    name: BOOT
     flags:
       - lba
   zfs:
     number: 2
+
+use_custom_pacman: true
+custom_pacman:
+  server: https://mirrors.dotsrc.org/archlinuxarm/$arch/$repo
+  color: true
+  repoes:
+    - core
+    - extra
+    - community
+    - alarm
+    - aur
+
+keyring_packages:
+  - archlinux-keyring
+  - archlinuxarm-keyring
+
+
 
 zfs_filesystem_structure:
   - filesystem: "ROOT"
@@ -83,3 +105,4 @@ zfs_filesystem_structure:
     mountpoint: /home
 
   - filesystem: "data/home/{{ admin_user }}"
+

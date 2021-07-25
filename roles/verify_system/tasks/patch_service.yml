@@ -1,3 +1,5 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
 - name: "Make sure that the folder path '/var/lib/systemd/linger' exists (no_systemd)"
   file:
     path: "/var/lib/systemd/linger"

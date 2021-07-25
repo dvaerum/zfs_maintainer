@@ -3,7 +3,7 @@
 - name: Reads the entire grub.cfg.j2 file
   local_action:
     module: command
-    cmd: "cat {{ playbook_dir }}/roles/grub_mkconfig/templates/grub.cfg.j2"
+    cmd: "cat '{{ playbook_dir }}/roles/{{ role_name }}/templates/grub.cfg.j2'"
   register: _grub_cfg
 
 - name: Check if /boot/grub/grub.cfg exists

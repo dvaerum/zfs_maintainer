@@ -1,7 +1,7 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
-- name: Install & Config the OS and architecture specific stuff
+- name: Config the base OS and architecture stuff
   include_tasks: "os_{{ os }}-{{ architecture }}.yml"
 
-- name: Install & Config the OS specific stuff
+- name: Config the base OS stuff
   include_tasks: "os_{{ os }}.yml"

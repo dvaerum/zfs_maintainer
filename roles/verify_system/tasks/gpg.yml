@@ -1,3 +1,4 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - name: Create the folder path for fish
   file:
@@ -16,9 +17,10 @@
     group: "{{ patch_user }}"
     mode: 0644
     block: |
-      keyserver-options auto-key-retrieve  
-      auto-key-locate hkp://keys.gnupg.net  
-      keyserver hkp://keys.gnupg.net
+      keyserver-options auto-key-retrieve
+      auto-key-locate hkp://keys.gnupg.net
+      keyserver keyserver.ubuntu.com
+      #keyserver hkp://keys.gnupg.net
 
 - name: Import GPG key for building ZFS
   become: true
@@ -32,3 +34,13 @@
 - name: Import GPG key for building ZFS (debug)
   debug:
     var: _result
+
+- name: "Stop gpg-agent & dirmngr if running as {{ patch_user }}"
+  become: true
+  become_user: "{{ patch_user }}"
+  command:
+    cmd: "gpgconf --kill '{{ item }}'"
+  loop:
+    - gpg-agent
+    - dirmngr
+

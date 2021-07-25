@@ -8,8 +8,8 @@ uboot_package: uboot-pinebookpro
 shell_to_use: /usr/bin/fish
 
 zfs_packages:
-  - zfs-utils-any
-  - zfs-dkms-any
+  - zfs-utils
+  - zfs-dkms
 
 
 
@@ -22,8 +22,8 @@ zfs_packages:
 #    device_name: eth*
 
 packages_need_for_atomic_update_from_the_aur:
-  - trizen
-  - mkinitcpio-sd-zfs-any
+  - pikaur
+  - mkinitcpio-sd-zfs
 
 packages:
   - git
@@ -60,6 +60,22 @@ partition:
       - lba
   zfs:
     number: 2
+
+use_custom_pacman: true
+custom_pacman:
+  server: https://mirrors.dotsrc.org/manjaro-arm/stable/$repo/$arch
+  color: true
+  repoes:
+    - core
+    - extra
+    - community
+
+
+keyring_packages:
+  - archlinux-keyring
+  - archlinuxarm-keyring
+  - manjaro-keyring
+  - manjaro-arm-keyring
 
 zfs_filesystem_structure:
   - filesystem: "ROOT"

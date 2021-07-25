@@ -42,7 +42,7 @@
   when: not result.stat.exists or not result.stat.isblk or result.stat.path | dirname != "/dev"
 
 - fail:
-    msg: "Cannot install linux one the device '{{ install_device | basename }}' because the device contains partitions"
+    msg: "Cannot install linux on the device '{{ install_device | basename }}' because the device contains partitions"
   when: ansible_devices[install_device | basename].partitions | count > 0
 
 - name: Check the variable zpool_number
