@@ -29,7 +29,7 @@
         name: "{{ root_zfs_pool }}"
         recurse: yes
 
-      block:
+    - block:
         - name: "Destroy the old filesystem '{{ distro_old_boot_path }}'"
           zfs:
             name: "{{ distro_old_boot_path }}"
