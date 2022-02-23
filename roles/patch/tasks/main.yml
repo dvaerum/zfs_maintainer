@@ -2,9 +2,13 @@
 ---
 - block:
     - name: Run pacman
-      pacman:
-        upgrade: yes
-        update_cache: yes
+      command:
+        argv:
+          - pacman
+          - -Syu
+          - --noconfirm
+          - --ask
+          - 20
       register: _result_pacman
 
     - name: Run pacman (debug)
