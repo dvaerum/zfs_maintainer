@@ -11,11 +11,11 @@ zfs_packages:
   - zfs-utils
   - zfs-dkms
 
-add_extra_repos:
-  - insertbefore: '^\[core\]'
-    block: |
-      [archzfs]
-      Server = http://archzfs.com/$repo/x86_64
+# add_extra_repos:
+#   - insertbefore: '^\[core\]'
+#     block: |
+#       [archzfs]
+#       Server = http://archzfs.com/$repo/x86_64
 
 systemd:
   network:
@@ -81,7 +81,7 @@ partition:
 
 keyring_packages:
   - archlinux-keyring
-  - archlinuxarm-keyring
+
 
 
 
