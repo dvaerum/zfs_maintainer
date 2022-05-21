@@ -58,10 +58,11 @@
     mode: 0440
   when: root_user
 
+- name: Configurate & Setup service files
+  include_tasks: gpg.yml
 
 - name: "Config ZFS"
   include_tasks: "zfs.yml"
-
 
 - name: Check for the git binary
   stat:
@@ -81,9 +82,6 @@
 
 - name: Configurate & Setup service files
   include: patch_service.yml
-
-#- name: Configurate & Setup service files
-#  include: gpg.yml
 
 - name: Install/Update the mkinitcpio module
   include: systemd-generator.yml

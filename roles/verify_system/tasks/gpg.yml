@@ -9,7 +9,7 @@
     group: "{{ patch_user }}"
     mode: 0700
 
-- name: Specify the variable 'XDG_RUNTIME_DIR' for bash
+- name: "Config gpg (.gnupg/gpg.conf)"
   blockinfile:
     path: "{{ patch_user_home }}/.gnupg/gpg.conf"
     create: yes
