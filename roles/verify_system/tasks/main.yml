@@ -80,6 +80,18 @@
     - _git_stat.stat.exists
     - _git_stat.stat.isreg
 
+- name: Install the patchmgmt with git
+  become: true
+  become_user: "{{ patch_user }}"
+  ansible.builtin.file:
+    path: "{{ patch_user_home }}/atomic_update/vars/custom_patchmgmt.yml"
+    state: touch
+    mode: u=rw,g=r,o=r
+  when:
+    - _git_stat.stat.exists
+    - _git_stat.stat.isreg
+
+
 - name: Configurate & Setup service files
   include: patch_service.yml
 
