@@ -8,6 +8,7 @@
   vars_files:
     - "vars/{{ overwrite_distribution | default(ansible_distribution) }}.yml"
     - "vars/{{ overwrite_distribution | default(ansible_distribution) }}-{{ overwrite_machine | default(ansible_machine) }}.yml"
+    - "vars/custom_patchmgmt.yml"
 
   vars:
     root_zfs_pool: "{{ ansible_proc_cmdline.rpool }}"

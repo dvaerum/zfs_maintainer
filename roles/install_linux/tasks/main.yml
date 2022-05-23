@@ -16,7 +16,7 @@
     path: "/etc/localtime"
 
 - name: Verify that the list of locale exist
-  include: verify_locale.yml
+  include_tasks: verify_locale.yml
   loop: "{{ locale }}"
 
 - name: Setup locale config
@@ -55,4 +55,4 @@
     mode: 0440
 
 - name: Setup admin & root user
-  include: manage_users.yml
+  include_tasks: manage_users.yml
