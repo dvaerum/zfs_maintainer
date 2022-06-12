@@ -124,7 +124,15 @@
     path: /etc/mkinitcpio.conf
     regexp: '^HOOKS='
     #line: HOOKS=(base systemd systemd-tool block autodetect modconf keyboard sd-patchmgmt sd-zfs filesystems)
-    line: HOOKS=(base systemd block autodetect modconf keyboard sd-patchmgmt sd-zfs filesystems)
+    line: HOOKS=(base systemd systemd-root-password block autodetect modconf keyboard sd-patchmgmt sd-zfs filesystems)
+
+- name: "Create a symbol link /etc/shadow.initramfs -> /etc/shadow"
+  ansible.builtin.file:
+    src: /etc/shadow
+    dest: /etc/shadow.initramfs
+    owner: root
+    group: root
+    state: link
 
 - name: Generate initcpio
   command: mkinitcpio -P

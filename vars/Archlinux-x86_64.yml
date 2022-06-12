@@ -21,10 +21,6 @@ systemd:
   network:
     device_name: en*
 
-packages_need_for_atomic_update_from_the_aur:
-  - pikaur
-  - mkinitcpio-sd-zfs
-
 packages:
   - git
   - man

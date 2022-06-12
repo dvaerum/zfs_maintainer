@@ -2,6 +2,11 @@
 ---
 os: Archlinux
 
+packages_need_for_atomic_update_from_the_aur:
+  - pikaur
+  - mkinitcpio-sd-zfs
+  - mkinitcpio-systemd-root-password
+
 package_mgmt_data:
   origin: "/var/lib/pacman"
   new_dst: "/patchmgmt/pacman"
