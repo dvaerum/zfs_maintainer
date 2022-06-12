@@ -1,6 +1,14 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - block:
+    - name: Run pacman - SyncFirst
+      command: 'pacman -Sy --noconfirm --ask 20 {{ keyring_packages | join(" ") }}'
+      register: _result_pacman_sync_first
+
+    - name: Run pacman - SyncFirst (debug)
+      debug:
+        var: _result_pacman_sync_first
+
     - name: Run pacman
       command:
         argv:
