@@ -1,48 +1,107 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - block:
-    - name: Run pacman - SyncFirst
-      command: 'pacman -Sy --noconfirm --ask 20 {{ keyring_packages | join(" ") }}'
-      register: _result_pacman_sync_first
+    - name: Install Packages - SyncFirst
+      command: 'pacman -Sy --needed --noconfirm --ask=20 {{ keyring_packages | join(" ") }}'
+      register: _install_packages_sync_first
 
-    - name: Run pacman - SyncFirst (debug)
+    - name: Install Packages - SyncFirst (debug)
       debug:
-        var: _result_pacman_sync_first
+        var: _install_packages_sync_first
 
-    - name: Run pacman
-      command:
-        argv:
-          - pacman
-          - -Syu
-          - --noconfirm
-          - --ask
-          - 20
-      register: _result_pacman
+        #    - name: Install Packages - ZFS
+        #      become: yes
+        #      become_user: "{{ patch_user }}"
+        #      command: 'pikaur -Sy --needed --noconfirm --ask=20 {{ zfs_packages | join(" ") }}'
+        #      register: _install_packages_zfs
+        #
+        #    - name: Install Packages - ZFS (debug)
+        #      debug:
+        #        var: _install_packages_zfs
 
-    - name: Run pacman (debug)
+    - name: Get Current Kernel Package Versions
+      shell: pacman -Qq | egrep '^('$(pacman -Qq | egrep '^linux(-[a-z]+)?-headers' | sed 's/-headers//' | tr '\n' '|' | sed -e 's/^|//' -e 's/|$//')')(-headers)?$' | xargs pacman -Q
+      register: _result_current_kernel_package_versions
+
+    - name: Get Current Kernel Package Versions (debug)
       debug:
-        var: _result_pacman
+        msg: "{{ _result_current_kernel_package_versions }}"
+
+    - block:
+        - name: Install Packages
+          command: pacman -Syu --noconfirm --ask=20
+          register: _install_packages
+          # the workaround is to added 'to_json | from_json' and when it work (it is magic)
+          failed_when: >-
+            _install_packages | to_json | from_json | json_query(filter_1) | count > 0 or
+            _install_packages | to_json | from_json | json_query(filter_2) | count > 0 or
+            _install_packages.rc != 0
+          vars:
+            filter_1: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+            filter_2: "stdout_lines[?contains(@, '==> ERROR: module not found: ')]"
+      rescue:
+        - name: Find Downgrade The Kernel Packages To The Old Versions
+          shell:
+            cmd: "sed 's/ /-/' | xargs -I '{}' find /var/cache/pacman/pkg -name '{}*' | grep -v '.sig$'"
+            stdin: "{{ _result_current_kernel_package_versions.stdout }}"
+          register: _result_downgrade_kernel_packages
+
+        - name: Find Downgrade Kernel Packages To The Old Versions (debug)
+          debug:
+            var: _result_downgrade_kernel_packages
+
+        - name: Downgrade Kernel Packages
+          command: 'pacman -U --noconfirm {{ _result_downgrade_kernel_packages.stdout_lines | join(" ") }}'
+          register: _result_downgraded_kernels
+
+        - name: Downgrade Kernel Packages (debug)
+          debug:
+            var: _result_downgraded_kernels
+
+        - name: Install Packages - Without Kernels
+          command: 'pacman -Syu --noconfirm --ask=20 --ignore {% for x in _result_current_kernel_package_versions.stdout_lines %}{{ x.split(" ")[0] }}{{ "," if not loop.last }}{% endfor %}'
+          register: _install_packages_without_kernels
+
+        - name: Install Packages - Without Kernels (debug)
+          debug:
+            var: _install_packages_without_kernels
+
+    - name: Install Packages (debug)
+      debug:
+        var: _install_packages
 
     - name: Upgrade packages from the aur
       become: yes
       become_user: "{{ patch_user }}"
       command: pikaur -Sy --aur --noconfirm
       register: _result_pikaur
-      failed_when:
+      # the workaround is to added 'to_json | from_json' and when it work (it is magic)
+      failed_when: >-
+        _result_pikaur | to_json | from_json | json_query(filter_1) | count > 0 or
+        _result_pikaur | to_json | from_json | json_query(filter_2) | count > 0 or
+        _result_pikaur.rc != 0
+      vars:
+        filter_1: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+        filter_2: "stdout_lines[?contains(@, '==> ERROR: module not found: ')]"
+
+    # TODO: remove this when the filter has been confirmed to work
+    - name: Install ZFS packages - AUR Package Manager (filter_1) (debug)
+      debug:
         # the workaround is to added 'to_json | from_json' and when it work (it is magic)
-        - _result_pikaur | to_json | from_json | json_query(filter) | count > 0 or _result_pikaur.rc != 0
+        var: _result_pikaur | to_json | from_json | json_query(filter) | count > 0
       vars:
         filter: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
 
-    # TODO: remove this when the filter has been confirmed to work
-    - name: Install ZFS packages - AUR Package Manager (debug)
+    - name: Install ZFS packages - AUR Package Manager (filter_2) (debug)
       debug:
-        var:
         # the workaround is to added 'to_json | from_json' and when it work (it is magic)
-          - _result_pikaur | to_json | from_json | json_query(filter) | count > 0
-          - _result_pikaur.rc != 0
+        var: _result_pikaur | to_json | from_json | json_query(filter) | count > 0
       vars:
-        filter: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+        filter: "stdout_lines[?contains(@, '==> ERROR: module not found: ')]"
+
+    - name: Install ZFS packages - AUR Package Manager (return code) (debug)
+      debug:
+        var: _result_pikaur.rc != 0
 
     - name: Upgrade packages from the aur (debug)
       debug:
