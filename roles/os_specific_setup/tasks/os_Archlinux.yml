@@ -11,7 +11,7 @@
 ### Install AUR package manager
 - name: Copy pre-build package of the aur package installer
   copy:
-    src: pikaur-1.10.1-1-any.pkg.tar.zst
+    src: pikaur-1.11-1-any.pkg.tar.zst
     dest: /tmp/pikaur.pkg.tar.zst
   register: _aur_package_installer
 
