@@ -3,7 +3,6 @@
 - name: Unmount the list of binds 
   ansible.builtin.command:
     cmd: "sudo umount '{{ next_boot_mountpoint }}{{ item }}'"
-    warn: no
   with_items: "{{ binds | reverse }}"
   register: _result
   failed_when: not (_result.rc != 0 or _result.rc != 32)

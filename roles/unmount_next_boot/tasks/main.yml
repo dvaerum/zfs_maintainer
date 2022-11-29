@@ -14,7 +14,6 @@
 - name: Unmount the entire next_boot envirement
   ansible.builtin.command:
     cmd: "sudo umount --recursive '{{ next_boot_mountpoint }}'"
-    warn: no
   when:
     - _result.stat.exists
     - _result.stat.isdir

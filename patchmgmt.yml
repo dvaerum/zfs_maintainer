@@ -126,7 +126,6 @@
     - name: Set bootfs (zpool prop) to the next_boot
       ansible.builtin.command: 
         cmd: "sudo zpool set bootfs='{{ distro_next_boot_path }}' '{{ root_zfs_pool }}'"
-        warn: no
       tags:
         - update_bootfs
 

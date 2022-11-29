@@ -3,8 +3,6 @@
 - name: Mount the list of binds
   ansible.builtin.command:
     cmd: "sudo mount --bind '{{ item }}' '{{ next_boot_mountpoint }}{{ item }}'"
-  args:
-    warn: no
   with_items: "{{ binds }}"
 
 

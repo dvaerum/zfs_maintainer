@@ -51,7 +51,6 @@
       print(e, file=sys.stderr)
     zzzEOFzzz
   args:
-    warn: no
   register: _result
 
 - name: Generates a new grub.cfg file based on a template (Failed)

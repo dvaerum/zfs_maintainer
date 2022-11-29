@@ -79,8 +79,6 @@
 - name: Mount zfs filesystem "{{ distro_next_boot_path }}"
   ansible.builtin.command:
     cmd: "sudo zfs mount '{{ distro_next_boot_path }}'"
-  args:
-    warn: no
 
 #- name: Set permissions for the mountpoint folder
 #  file:

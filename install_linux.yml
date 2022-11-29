@@ -41,7 +41,6 @@
   tasks:
     - name: Pre-mounting for chroot
       ansible.builtin.command:
-        warn: no
         cmd: >-
           mount '{{ item.src }}' '{{ item.dest }}'
           {% if item.bind | default(False) %}

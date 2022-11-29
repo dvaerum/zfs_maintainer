@@ -199,8 +199,6 @@
 - name: "Mount the boot partition"
   ansible.builtin.command:
     cmd: "mount --verbose '{{ install_device }}{{ _partition_prefix }}{{ partition.boot.number }}' '{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}'"
-  args:
-    warn: no
   tags:
     - mount_filesystem
 
