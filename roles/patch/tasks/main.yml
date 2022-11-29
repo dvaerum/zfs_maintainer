@@ -2,7 +2,7 @@
 ---
 - block:
     - name: Install Packages - SyncFirst
-      command: 'pacman -Sy --needed --noconfirm --ask=20 {{ keyring_packages | join(" ") }}'
+      command: 'pacman -Sy --needed --noconfirm --ask=20 --overwrite="*" {{ keyring_packages | join(" ") }}'
       register: _install_packages_sync_first
 
     - name: Install Packages - SyncFirst (debug)
@@ -12,7 +12,7 @@
         #    - name: Install Packages - ZFS
         #      become: yes
         #      become_user: "{{ patch_user }}"
-        #      command: 'pikaur -Sy --needed --noconfirm --ask=20 {{ zfs_packages | join(" ") }}'
+        #      command: 'pikaur -Sy --needed --noconfirm --ask=20 --overwrite="*" {{ zfs_packages | join(" ") }}'
         #      register: _install_packages_zfs
         #
         #    - name: Install Packages - ZFS (debug)
@@ -29,7 +29,7 @@
 
     - block:
         - name: Install Packages
-          command: pacman -Syu --noconfirm --ask=20
+          command: pacman -Syu --noconfirm --ask=20 --overwrite="*"
           register: _install_packages
           # the workaround is to added 'to_json | from_json' and when it work (it is magic)
           failed_when: >-
@@ -59,7 +59,7 @@
             var: _result_downgraded_kernels
 
         - name: Install Packages - Without Kernels
-          command: 'pacman -Syu --noconfirm --ask=20 --ignore {% for x in _result_current_kernel_package_versions.stdout_lines %}{{ x.split(" ")[0] }}{{ "," if not loop.last }}{% endfor %}'
+          command: 'pacman -Syu --noconfirm --ask=20 --overwrite="*" --ignore {% for x in _result_current_kernel_package_versions.stdout_lines %}{{ x.split(" ")[0] }}{{ "," if not loop.last }}{% endfor %}'
           register: _install_packages_without_kernels
 
         - name: Install Packages - Without Kernels (debug)

@@ -8,6 +8,7 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman /tmp/trizen-{{ patch_user }}/*/*.pkg.tar.xz -U --noconfirm
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --noconfirm -S --asdeps *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu --noconfirm --ask 20
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu --noconfirm --ask 20 --overwrite="*"
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu --noconfirm
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Sy --noconfirm
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu
@@ -24,7 +25,9 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --noconfirm --sync --asdeps *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --noconfirm --remove *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --noconfirm --ask=20 *
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --noconfirm --ask=20 --overwrite="*" *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --needed --noconfirm --ask=20 *
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --needed --noconfirm --ask=20 --overwrite="*" *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --refresh
 #{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/
 
