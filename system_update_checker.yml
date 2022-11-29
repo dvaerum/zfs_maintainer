@@ -43,7 +43,7 @@
           register: _snapshot_creation_datetime
 
         - name: "Rename to snapshot '{{ distro_snapshot_path }}'"
-          command:
+          ansible.builtin.command:
             cmd: "zfs rename '{{ distro_snapshot_path }}' '{{ distro_filesystem_path }}@{{ datetime }}'"
             warn: no
           vars:
@@ -75,7 +75,7 @@
 #    - name: The last things after a successful upgrade
 #      block:
 #        - name: "Promote the filesystgem '{{ distro_next_boot_path }}'"
-#          command:
+#          ansible.builtin.command:
 #            cmd: "sudo zfs promote '{{ distro_next_boot_path }}'"
 #            warn: no
 #          when:
@@ -90,7 +90,7 @@
 #            state: absent
 #
 #        - name: "Rename to filesystem '{{ distro_next_boot_path }}' -> '{{ distro_filesystem_path }}'"
-#          command:
+#          ansible.builtin.command:
 #            cmd: "sudo zfs rename '{{ distro_next_boot_path }}' '{{ distro_filesystem_path }}'"
 #            warn: no
 #          register: _result
@@ -111,7 +111,7 @@
 #    - name: The last things after a successful upgrade
 #      block:
 #        - name: "Promote the filesystgem '{{ distro_next_boot_path }}'"
-#          command:
+#          ansible.builtin.command:
 #            cmd: "sudo zfs promote '{{ distro_next_boot_path }}'"
 #            warn: no
 #          when:
@@ -126,7 +126,7 @@
 #            state: absent
 #
 #        - name: "Rename to filesystem '{{ distro_next_boot_path }}' -> '{{ distro_filesystem_path }}'"
-#          command:
+#          ansible.builtin.command:
 #            cmd: "sudo zfs rename '{{ distro_next_boot_path }}' '{{ distro_filesystem_path }}'"
 #            warn: no
 #          register: _result
@@ -159,7 +159,7 @@
 #            - _result.stat.isdir
 #
 #        - name: Destroy clone '{{ distro_next_boot_path }}'
-#          command:
+#          ansible.builtin.command:
 #            cmd: "sudo zfs destroy '{{ distro_next_boot_path }}'"
 #            warn: no
 #

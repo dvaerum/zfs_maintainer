@@ -25,7 +25,8 @@
     dest: /etc/locale.conf
 
 - name: Generate locale
-  command: locale-gen
+  ansible.builtin.command:
+    cmd: locale-gen
 
 - name: Set hostname
   copy:

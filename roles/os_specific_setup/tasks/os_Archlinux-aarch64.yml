@@ -1,7 +1,8 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - name: Create pacman keys
-  command: pacman-key --init
+  ansible.builtin.command:
+    cmd: pacman-key --init
   register: _result
 
 - name: Create pacman keys (debug)
@@ -74,14 +75,15 @@
     mode: 0444
 
 - name: Generate /boot/boot.scr (u-boot script)
-  command: >-
-    mkimage -A arm 
-    -O linux
-    -T script
-    -C none
-    -n "U-Boot boot script"
-    -d /boot/boot.txt
-    /boot/boot.scr
+  ansible.builtin.command:
+    cmd: >-
+      mkimage -A arm
+      -O linux
+      -T script
+      -C none
+      -n "U-Boot boot script"
+      -d /boot/boot.txt
+      /boot/boot.scr
 
 ### Config pacman hook for copying the kernel to {{ kernel_path_dir }}
 - name: "Make sure that the folder /etc/pacman.d/hooks exist"

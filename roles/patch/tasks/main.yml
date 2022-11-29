@@ -2,7 +2,8 @@
 ---
 - block:
     - name: Install Packages - SyncFirst
-      command: 'pacman -Sy --needed --noconfirm --ask=20 --overwrite="*" {{ keyring_packages | join(" ") }}'
+      ansible.builtin.command:
+        cmd: 'pacman -Sy --needed --noconfirm --ask=20 --overwrite="*" {{ keyring_packages | join(" ") }}'
       register: _install_packages_sync_first
 
     - name: Install Packages - SyncFirst (debug)
@@ -10,9 +11,10 @@
         var: _install_packages_sync_first
 
         #    - name: Install Packages - ZFS
-        #      become: yes
+        #      become: true
         #      become_user: "{{ patch_user }}"
-        #      command: 'pikaur -Sy --needed --noconfirm --ask=20 --overwrite="*" {{ zfs_packages | join(" ") }}'
+        #      ansible.builtin.command:
+        #        cmd: 'pikaur -Sy --needed --noconfirm --ask=20 --overwrite="*" {{ zfs_packages | join(" ") }}'
         #      register: _install_packages_zfs
         #
         #    - name: Install Packages - ZFS (debug)
@@ -29,7 +31,8 @@
 
     - block:
         - name: Install Packages
-          command: pacman -Syu --noconfirm --ask=20 --overwrite="*"
+          ansible.builtin.command:
+            cmd: pacman -Syu --noconfirm --ask=20 --overwrite="*"
           register: _install_packages
           # the workaround is to added 'to_json | from_json' and when it work (it is magic)
           failed_when: >-
@@ -51,7 +54,8 @@
             var: _result_downgrade_kernel_packages
 
         - name: Downgrade Kernel Packages
-          command: 'pacman -U --noconfirm {{ _result_downgrade_kernel_packages.stdout_lines | join(" ") }}'
+          ansible.builtin.command:
+            cmd: 'pacman -U --noconfirm {{ _result_downgrade_kernel_packages.stdout_lines | join(" ") }}'
           register: _result_downgraded_kernels
 
         - name: Downgrade Kernel Packages (debug)
@@ -59,7 +63,8 @@
             var: _result_downgraded_kernels
 
         - name: Install Packages - Without Kernels
-          command: 'pacman -Syu --noconfirm --ask=20 --overwrite="*" --ignore {% for x in _result_current_kernel_package_versions.stdout_lines %}{{ x.split(" ")[0] }}{{ "," if not loop.last }}{% endfor %}'
+          ansible.builtin.command:
+            cmd: 'pacman -Syu --noconfirm --ask=20 --overwrite="*" --ignore {% for x in _result_current_kernel_package_versions.stdout_lines %}{{ x.split(" ")[0] }}{{ "," if not loop.last }}{% endfor %}'
           register: _install_packages_without_kernels
 
         - name: Install Packages - Without Kernels (debug)
@@ -71,9 +76,10 @@
         var: _install_packages
 
     - name: Upgrade packages from the aur
-      become: yes
+      become: true
       become_user: "{{ patch_user }}"
-      command: pikaur -Sy --aur --noconfirm
+      ansible.builtin.command:
+        cmd: pikaur -Sy --aur --noconfirm
       register: _result_pikaur
       # the workaround is to added 'to_json | from_json' and when it work (it is magic)
       failed_when: >-

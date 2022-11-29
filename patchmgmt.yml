@@ -124,8 +124,8 @@
         - delete_snapshot_because_of_failure
 
     - name: Set bootfs (zpool prop) to the next_boot
-      command: "sudo zpool set bootfs='{{ distro_next_boot_path }}' '{{ root_zfs_pool }}'"
-      args:
+      ansible.builtin.command: 
+        cmd: "sudo zpool set bootfs='{{ distro_next_boot_path }}' '{{ root_zfs_pool }}'"
         warn: no
       tags:
         - update_bootfs

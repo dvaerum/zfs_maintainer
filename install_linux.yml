@@ -40,7 +40,7 @@
 
   tasks:
     - name: Pre-mounting for chroot
-      command:
+      ansible.builtin.command:
         warn: no
         cmd: >-
           mount '{{ item.src }}' '{{ item.dest }}'
@@ -124,7 +124,8 @@
 
   post_tasks:
     - name: Enable services
-      command: "systemctl enable {{ item }}"
+      ansible.builtin.command:
+        cmd: "systemctl enable {{ item }}"
       loop: "{{ enable_services }}"
       tags:
         - test
@@ -187,7 +188,8 @@
       shell: sudo lsof | grep '{{ next_boot_mountpoint }}' | awk '{print $2}' | uniq | sudo xargs -r kill
 
     - name: Umount the entire chroot envirement
-      command: "umount --verbose --recursive '{{ next_boot_mountpoint }}'"
+      ansible.builtin.command:
+        cmd: "umount --verbose --recursive '{{ next_boot_mountpoint }}'"
       register: _result
 
     - name: Umount the entire chroot envirement (debug)
@@ -195,4 +197,5 @@
         var: _result
 
     - name: "Export {{ root_zfs_pool }} pool"
-      command: "zpool export '{{ root_zfs_pool }}'"
+      ansible.builtin.command:
+        cmd: "zpool export '{{ root_zfs_pool }}'"

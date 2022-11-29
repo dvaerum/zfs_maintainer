@@ -1,7 +1,8 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - name: Mount the list of binds
-  command: "sudo mount --bind '{{ item }}' '{{ next_boot_mountpoint }}{{ item }}'"
+  ansible.builtin.command:
+    cmd: "sudo mount --bind '{{ item }}' '{{ next_boot_mountpoint }}{{ item }}'"
   args:
     warn: no
   with_items: "{{ binds }}"

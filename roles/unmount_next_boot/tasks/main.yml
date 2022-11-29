@@ -12,8 +12,8 @@
     - not _result.stat.exists
 
 - name: Unmount the entire next_boot envirement
-  command: "sudo umount --recursive '{{ next_boot_mountpoint }}'"
-  args:
+  ansible.builtin.command:
+    cmd: "sudo umount --recursive '{{ next_boot_mountpoint }}'"
     warn: no
   when:
     - _result.stat.exists
@@ -30,7 +30,8 @@
 #    var: ansible_zfs_datasets
 
 #- name: Unmount the (zfs) next_boot partition
-#  command: "zfs unmount {{ distro_next_boot_path }}"
+#  ansible.builtin.command:
+#    cmd: "zfs unmount {{ distro_next_boot_path }}"
 #  when: ansible_zfs_datasets | json_query(json_filter) | count == 1
 #  vars:
 #    json_filter: "[?name=='{{ distro_next_boot_path }}' && mounted=='yes']"

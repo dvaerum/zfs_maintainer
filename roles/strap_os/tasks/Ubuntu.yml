@@ -12,7 +12,7 @@
 #     var: _result
 
 # - name: ""
-#   command:
+#   ansible.builtin.command:
 #     cmd: kpartx -av /tmp/ubuntu-18.04.4-preinstalled-server-arm64.img
 #   register: _result
 
@@ -48,7 +48,7 @@
       dest: lib
 
 - name: Install base linux environment
-  command:
+  ansible.builtin.command:
     cmd: >-
       debootstrap
       --verbose

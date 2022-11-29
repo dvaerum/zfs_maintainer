@@ -88,29 +88,30 @@
     - create_filesystem
 
 - name: Format zfs partition
-  command: >
-    zpool create -d -f
-    -m none
-    -R '{{ next_boot_mountpoint }}'
-    -o ashift=13
-    -o feature@allocation_classes=enabled
-    -o feature@async_destroy=enabled
-    -o feature@bookmarks=enabled
-    -o feature@embedded_data=enabled
-    -o feature@empty_bpobj=enabled
-    -o feature@enabled_txg=enabled
-    -o feature@extensible_dataset=enabled
-    -o feature@filesystem_limits=enabled
-    -o feature@hole_birth=enabled
-    -o feature@large_blocks=enabled
-    -o feature@lz4_compress=enabled
-    -o feature@project_quota=enabled
-    -o feature@resilver_defer=enabled
-    -o feature@spacemap_histogram=enabled
-    -o feature@spacemap_v2=enabled
-    -o feature@userobj_accounting=enabled
-    -o feature@zpool_checkpoint=enabled
-    '{{ root_zfs_pool }}' '{{ install_device }}{{ _partition_prefix }}{{ partition.zfs.number }}'
+  ansible.builtin.command:
+    cmd: >-
+      zpool create -d -f
+      -m none
+      -R '{{ next_boot_mountpoint }}'
+      -o ashift=13
+      -o feature@allocation_classes=enabled
+      -o feature@async_destroy=enabled
+      -o feature@bookmarks=enabled
+      -o feature@embedded_data=enabled
+      -o feature@empty_bpobj=enabled
+      -o feature@enabled_txg=enabled
+      -o feature@extensible_dataset=enabled
+      -o feature@filesystem_limits=enabled
+      -o feature@hole_birth=enabled
+      -o feature@large_blocks=enabled
+      -o feature@lz4_compress=enabled
+      -o feature@project_quota=enabled
+      -o feature@resilver_defer=enabled
+      -o feature@spacemap_histogram=enabled
+      -o feature@spacemap_v2=enabled
+      -o feature@userobj_accounting=enabled
+      -o feature@zpool_checkpoint=enabled
+      '{{ root_zfs_pool }}' '{{ install_device }}{{ _partition_prefix }}{{ partition.zfs.number }}'
   register: result
   tags:
     - create_filesystem
@@ -157,7 +158,8 @@
     - create_filesystem
 
 - name: "Export the newly create zpool '{{ root_zfs_pool }}'"
-  command: "zpool export '{{ root_zfs_pool }}'"
+  ansible.builtin.command:
+    cmd: "zpool export '{{ root_zfs_pool }}'"
   tags:
     - create_filesystem
 
@@ -169,16 +171,18 @@
     - create_filesystem
 
 - name: "Re-import the newly create zpool '{{ root_zfs_pool }}'"
-  command: > 
-    zpool import -f -N
-    -d '/dev/disk/by-id'
-    -R '{{ next_boot_mountpoint }}'
-    '{{ root_zfs_pool }}'
+  ansible.builtin.command:
+    cmd: >-
+      zpool import -f -N
+      -d '/dev/disk/by-id'
+      -R '{{ next_boot_mountpoint }}'
+      '{{ root_zfs_pool }}'
   tags:
     - mount_filesystem
 
 - name: "Manually mount the filesystem '{{ distro_filesystem_path }}'"
-  command: "zfs mount '{{ distro_filesystem_path }}'"
+  ansible.builtin.command:
+    cmd: "zfs mount '{{ distro_filesystem_path }}'"
   tags:
     - mount_filesystem
 
@@ -193,18 +197,21 @@
     - mount_filesystem
 
 - name: "Mount the boot partition"
-  command: "mount --verbose '{{ install_device }}{{ _partition_prefix }}{{ partition.boot.number }}' '{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}'"
+  ansible.builtin.command:
+    cmd: "mount --verbose '{{ install_device }}{{ _partition_prefix }}{{ partition.boot.number }}' '{{ next_boot_mountpoint }}{{mountpoint_efi_partition}}'"
   args:
     warn: no
   tags:
     - mount_filesystem
 
 - name: Mount all zfs filesystems
-  command: "zfs mount -a"
+  ansible.builtin.command:
+    cmd: "zfs mount -a"
   tags:
     - mount_filesystem
 
 - name: "Set the bootfs option for zpool '{{ root_zfs_pool }}'"
-  command: "zpool set 'bootfs={{ distro_filesystem_path }}' '{{ root_zfs_pool }}'"
+  ansible.builtin.command:
+    cmd: "zpool set 'bootfs={{ distro_filesystem_path }}' '{{ root_zfs_pool }}'"
   tags:
     - mount_filesystem

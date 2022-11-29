@@ -39,7 +39,8 @@
         state: absent
 
     - name: "Move the folder {{ package_mgmt_data.origin }} -> {{ package_mgmt_data.new_dst }}"
-      command: "mv '{{ package_mgmt_data.origin }}' '{{ package_mgmt_data.new_dst }}'"
+      ansible.builtin.command:
+        cmd: "mv '{{ package_mgmt_data.origin }}' '{{ package_mgmt_data.new_dst }}'"
   when:
     - _search_result.matched is defined
     - _search_result.matched > 0

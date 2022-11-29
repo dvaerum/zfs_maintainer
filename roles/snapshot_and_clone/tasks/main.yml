@@ -16,7 +16,8 @@
 
 - block:
     - name: Check if the snapshot named 'before_upgrade' or the 'next_boot' partition exist
-      command: "sudo umount --recursive '{{ next_boot_mountpoint }}'"
+      ansible.builtin.command:
+        cmd: "sudo umount --recursive '{{ next_boot_mountpoint }}'"
       failed_when: false
       register: _failed_patch_umount
 
@@ -25,7 +26,8 @@
         var: _failed_patch_umount
 
     - name: Delete failed next boot update
-      command: "zfs destroy -R '{{ distro_snapshot_path }}'"
+      ansible.builtin.command:
+        cmd: "zfs destroy -R '{{ distro_snapshot_path }}'"
       failed_when: false
       register: _failed_patch_delete
 
@@ -75,7 +77,8 @@
 #  when: snapshots is defined
 
 - name: Mount zfs filesystem "{{ distro_next_boot_path }}"
-  command: "sudo zfs mount '{{ distro_next_boot_path }}'"
+  ansible.builtin.command:
+    cmd: "sudo zfs mount '{{ distro_next_boot_path }}'"
   args:
     warn: no
 

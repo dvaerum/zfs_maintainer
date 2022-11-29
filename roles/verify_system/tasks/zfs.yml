@@ -16,22 +16,24 @@
   register: _zfs_stat
 
 - name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
-  command: >-
-    zfs allow -l
-    {{ patch_user }}
-    mount,create
-    {{ root_zfs_pool }}/ROOT
+  ansible.builtin.command:
+    cmd: >-
+      zfs allow -l
+      {{ patch_user }}
+      mount,create
+      {{ root_zfs_pool }}/ROOT
   when:
     - root_user
     - _zfs_stat.stat.exists
     - _zfs_stat.stat.isreg
 
 - name: "Set ZFS permission to allow the user {{ patch_user }} to create snapshots and clones"
-  command: >-
-    zfs allow -d
-    {{ patch_user }}
-    mount,snapshot,clone,canmount,mountpoint,destroy,create,rename
-    {{ root_zfs_pool }}/ROOT
+  ansible.builtin.command:
+    cmd: >-
+      zfs allow -d
+      {{ patch_user }}
+      mount,snapshot,clone,canmount,mountpoint,destroy,create,rename
+      {{ root_zfs_pool }}/ROOT
   when:
     - root_user
     - _zfs_stat.stat.exists

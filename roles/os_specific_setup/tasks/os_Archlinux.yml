@@ -16,11 +16,13 @@
   register: _aur_package_installer
 
 #- name: Packages needed for the AUR installer
-#  command: pacman -Syu --noconfirm --noprogressbar --needed perl-crypt-ssleay
+#  ansible.builtin.command:
+#   cmd: pacman -Syu --noconfirm --noprogressbar --needed perl-crypt-ssleay
 #  register: result
 
 - name: Install the installer for the AUR
-  command: pacman -U --noconfirm --noprogressbar --needed "{{ _aur_package_installer.dest }}"
+  ansible.builtin.command:
+    cmd: pacman -U --noconfirm --noprogressbar --needed "{{ _aur_package_installer.dest }}"
   register: result
 
 - debug:
@@ -43,7 +45,7 @@
       - "{{ kernel_package }}"
       - "{{ kernel_package }}-headers"
     state: latest
-    update_cache: yes
+    update_cache: true
     update_cache_extra_args: --needed
   register: _result
 
@@ -53,11 +55,12 @@
 
 ### Install ZFS packages
 - name: Install ZFS packages - AUR Package Manager
-  become: yes
+  become: true
   become_user: "{{ patch_user }}"
-  command: >-
-    pikaur -S --noconfirm --needed --noprogressbar
-    {{ zfs_packages | join(' ') }}
+  ansible.builtin.command:
+    cmd: >-
+      pikaur -S --noconfirm --needed --noprogressbar
+      {{ zfs_packages | join(' ') }}
   register: _result
 
 - name: Install ZFS packages - AUR Package Manager (debug)
@@ -88,11 +91,12 @@
 
 ### Install packages needed for atomic update
 - name: Install packages needed for atomic update
-  become: yes
+  become: true
   become_user: "{{ patch_user }}"
-  command: >-
-    pikaur -S --noconfirm --needed --noprogressbar
-    {{ packages_need_for_atomic_update_from_the_aur | join(' ') }}
+  ansible.builtin.command:
+    cmd: >-
+      pikaur -S --noconfirm --needed --noprogressbar
+      {{ packages_need_for_atomic_update_from_the_aur | join(' ') }}
   register: _result
 
 - name: Install packages needed for atomic update (debug)
@@ -104,7 +108,7 @@
   pacman:
     name: "{{ packages }}"
     state: latest
-    update_cache: yes
+    update_cache: true
     update_cache_extra_args: --needed
   register: _result
 
@@ -135,7 +139,8 @@
     state: link
 
 - name: Generate initcpio
-  command: mkinitcpio -P
+  ansible.builtin.command:
+    cmd: mkinitcpio -P
   register: _result
   ignore_errors: true
 

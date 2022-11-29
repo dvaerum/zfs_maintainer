@@ -12,7 +12,8 @@
   register: _result
 
 - name: Read the grub.cfg file for backup
-  command: "sudo cat /boot/grub/grub.cfg"
+  ansible.builtin.command:
+    cmd: "sudo cat /boot/grub/grub.cfg"
   register: _old_grub_cfg
   when:
     - _result.stat.exists

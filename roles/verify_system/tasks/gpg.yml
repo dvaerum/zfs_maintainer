@@ -25,7 +25,7 @@
 - name: Import GPG key for building ZFS
   become: true
   become_user: "{{ patch_user }}"
-  command:
+  ansible.builtin.command:
     cmd: "gpg --recv-keys {{ item }}"
   loop:
     - 6AD860EED4598027
@@ -38,7 +38,7 @@
 - name: "Stop gpg-agent & dirmngr if running as {{ patch_user }}"
   become: true
   become_user: "{{ patch_user }}"
-  command:
+  ansible.builtin.command:
     cmd: "gpgconf --kill '{{ item }}'"
   loop:
     - gpg-agent

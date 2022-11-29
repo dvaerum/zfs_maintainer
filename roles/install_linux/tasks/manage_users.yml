@@ -1,8 +1,9 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - name: "Create hash of the password for the user '{{ admin_user }}'"
-  command: >-
-    python3 -c "import crypt; print(crypt.crypt('{{ admin_pass }}'))"
+  ansible.builtin.command:
+    cmd: >-
+      python3 -c "import crypt; print(crypt.crypt('{{ admin_pass }}'))"
   when: admin_pass_hash is not defined
   register: admin_pass_hash
 
@@ -12,8 +13,9 @@
   when: admin_pass_hash.stdout is defined
 
 - name: Create hash of the password for the user root
-  command: >-
-    python3 -c "import crypt; print(crypt.crypt('{{ root_pass }}'))"
+  ansible.builtin.command:
+    cmd: >-
+      python3 -c "import crypt; print(crypt.crypt('{{ root_pass }}'))"
   when: 
     - root_pass_hash is not defined
     - root_pass is defined

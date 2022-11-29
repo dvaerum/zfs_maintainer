@@ -1,7 +1,8 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - name: Find the the block device of the zpool
-  command: "zpool status -PL {{ root_zfs_pool }}"
+  ansible.builtin.command:
+    cmd: "zpool status -PL {{ root_zfs_pool }}"
   register: _result
 
 - name: Find the the block device of the zpool (set_fact)
