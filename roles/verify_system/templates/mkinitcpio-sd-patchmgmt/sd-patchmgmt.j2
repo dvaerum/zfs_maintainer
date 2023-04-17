@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-build() {
-    add_dir "/usr/lib/systemd/system/initrd-root-device.target.wants"
-    add_file "{{ initcpio_hook_dir }}/{{ initcpio_service }}" "/usr/lib/systemd/system/{{ initcpio_service }}"
-    add_symlink "/usr/lib/systemd/system/initrd-root-device.target.wants/{{ initcpio_service }}" "/usr/lib/systemd/system/{{ initcpio_service }}"
-
-    add_full_dir "{{ initcpio_hook_dir }}"
-}

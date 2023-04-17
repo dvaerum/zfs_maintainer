@@ -95,7 +95,3 @@
 
 - name: Configurate & Setup service files
   include_tasks: patch_service.yml
-
-- name: Install/Update the mkinitcpio module
-  include_tasks: systemd-generator.yml
-  when: root_user
