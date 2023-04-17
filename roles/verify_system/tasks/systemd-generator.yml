@@ -1,16 +1,6 @@
 - name: Create the mkinitcpio module for patchmgmt
   copy:
-    content: |
-      #!/usr/bin/env bash
-
-      build() {
-        add_file "$(readlink -f /etc/os-release)" "/etc/os-release"
-
-        add_full_dir "{{ initcpio_hook_dir }}"
-
-        add_symlink "/usr/lib/systemd/system-generators/generator_patchmgmt" "{{ initcpio_hook_dir }}/generator_patchmgmt"
-        # add_binary "{{ initcpio_hook_dir }}/generator_patchmgmt" "/usr/lib/systemd/system-generators/"
-      }
+    src: mkinitcpio-sd-patchmgmt/sd-patchmgmt.j2
     dest: "{{ initcpio_install_dir }}/sd-patchmgmt"
     owner: root
     group: root
@@ -24,80 +14,23 @@
     group: root
     mode: 0755
 
-- name: Create the init generator for patchmgmt
-  copy:
-    content: |
-      #!/usr/bin/env sh
-      set -eu
+- name: "Create the init generator for patchmgmt (update: remove file)"
+  file:
+    path: "{{ initcpio_hook_dir }}/generator_patchmgmt"
+    state: absent
 
-      LOG_FILE="/generator_patchmgmt.log"
-
-      exec 3>&1 4>&2
-      trap 'exec 2>&4 1>&3' 0 1 2 3
-      exec 1>${LOG_FILE} 2>&1
-
-      # store arguments in a special array
-      #args=("$@")
-      # get number of elements
-      #{{ 'ELEMENTS=${#args[@]}' }}
-
-      # echo each element in array
-      # for loop
-      #for (( i=0;i<$ELEMENTS;i++)); do
-      #  echo "i: '${args[${i}]}'"
-      #done
-      FOLDER="$1"
-
-      cat <<"zzzEOFzzz" > "${FOLDER}/{{ initcpio_service }}"
-      [Unit]
-      Description=Rename/Move ZFS filesystem after patchmgmt
-      DefaultDependencies=no
-      Requires=zfs-import-scan.service
-      After=zfs-import-scan.service
-      Before=sysroot.mount
-
-      [Service]
-      Type=oneshot
-      RemainAfterExit=yes
-      ExecStart={{ initcpio_hook_dir }}/post_patchmgmt.sh
-      zzzEOFzzz
-
-      mkdir -p "${FOLDER}/initrd-root-device.target.wants"
-      ln -s "{{ initcpio_service }}" "${FOLDER}/initrd-root-device.target.wants/{{ initcpio_service }}"
-
-    dest: "{{ initcpio_hook_dir }}/generator_patchmgmt"
+- name: Create the script to handle *_next_boot filesystems
+  template:
+    src: "mkinitcpio-sd-patchmgmt/patchmgmt-next-boot.sh.j2"
+    dest: "{{ initcpio_hook_dir }}/patchmgmt-next-boot.sh"
     owner: root
     group: root
     mode: 0755
 
-- name: Create the script the run after next boot patchmgmt
-  copy:
-    content: |
-      #!/usr/bin/env sh
-      set -eux
-
-      LOG_FILE="/post_patchmgmt.log"
-
-      exec 3>&1 4>&2
-      trap 'exec 2>&4 1>&3' 0 1 2 3
-      exec 1>${LOG_FILE} 2>&1
-
-      DISTRO='{{ ansible_distribution }}'
-      ROOT_ZPOOL='{{ root_zfs_pool }}'
-      ZFS_BOOT="${ROOT_ZPOOL}/ROOT/${DISTRO}"
-      ZFS_NEXT_BOOT="${ZFS_BOOT}_next_boot"
-      ZFS_OLD_BOOT="${ZFS_BOOT}_old_boot"
-
-      result=$(zfs list -Hr -t filesystem -o name "${ROOT_ZPOOL}/ROOT")
-      if echo "${result}" | grep -q "${ZFS_NEXT_BOOT}"; then
-        if zpool get -H bootfs "${ROOT_ZPOOL}" | grep -q "${ZFS_NEXT_BOOT}"; then
-          zfs rename "${ZFS_BOOT}" "${ZFS_OLD_BOOT}"
-          zfs rename "${ZFS_NEXT_BOOT}" "${ZFS_BOOT}"
-          zfs promote "${ZFS_BOOT}"
-        fi
-      fi
-
-    dest: "{{ initcpio_hook_dir }}/post_patchmgmt.sh"
+- name: Create the systemd service which run the patchmgmt-next-boot.sh script
+  template:
+    src: "mkinitcpio-sd-patchmgmt/patchmgmt-next-boot.service.j2"
+    dest: "{{ initcpio_hook_dir }}/patchmgmt-next-boot.service"
     owner: root
     group: root
     mode: 0755

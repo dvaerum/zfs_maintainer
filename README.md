@@ -63,7 +63,7 @@ A simplified overall step by step explanation for the patch management process.
 4. Patch Management changes the grub.cfg file, to boot into the up-to-date OS
 5. Patch Management reboots the system
 6. The system boots and load the GRUB (the boot loader), which loads and boots the kernel
-7. Before the kernel mounts the new ROOT ZFS filesystem, the script post_patchmgmt.sh is executed, which rename the ROOT ZFS filesystem, because that cannot/should not be done when it is mounted.
+7. Before the kernel mounts the new ROOT ZFS filesystem, the script patchmgmt-next-boot.sh is executed, which rename the ROOT ZFS filesystem, because that cannot/should not be done when it is mounted.
 8. The kernel now mounts the new ROOT ZFS filesystem and starts the OS
 9. 5 mins into the OS boot process (hopefully went everything there can start is started) the playbook system_update_checker.yml will verify the system.
 
