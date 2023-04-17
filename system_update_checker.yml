@@ -16,7 +16,7 @@
     distro_snapshot_path: "{{ root_zfs_pool }}/ROOT/{{ ansible_distribution }}@before_upgrade"
     distro_old_boot_path: "{{ distro_filesystem_path }}_old_boot"
     distro_filesystem_path_without_zpool: "/ROOT/{{ ansible_distribution }}"
-    number_of_snapshots_to_keep: 10
+    number_of_snapshots_to_keep: 3
 
   roles:
     - name: Config Grub
