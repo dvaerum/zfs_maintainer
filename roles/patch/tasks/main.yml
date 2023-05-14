@@ -29,6 +29,21 @@
       debug:
         msg: "{{ _result_current_kernel_package_versions }}"
 
+    - name: Upgrade zfs packages
+      become: true
+      become_user: "{{ patch_user }}"
+      ansible.builtin.command:
+        cmd: 'pikaur -Sy --noconfirm {{ zfs_packages | join(" ") }}'
+      register: _result_pikaur
+      # the workaround is to added 'to_json | from_json' and when it work (it is magic)
+      failed_when: >-
+        _result_pikaur | to_json | from_json | json_query(filter_1) | count > 0 or
+        _result_pikaur | to_json | from_json | json_query(filter_2) | count > 0 or
+        _result_pikaur.rc != 0
+      vars:
+        filter_1: "stdout_lines[?contains(@, 'Error! Bad return status for module build on kernel')]"
+        filter_2: "stdout_lines[?contains(@, '==> ERROR: module not found: ')]"
+
     - block:
         - name: Install Packages
           ansible.builtin.command:
