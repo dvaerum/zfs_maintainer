@@ -24,6 +24,8 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --upgrade --noprogressbar --noconfirm --needed /{{ patch_user }}/.cache/pikaur/pkg/*
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --noconfirm --sync --asdeps *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --noconfirm --remove *
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --upgrade --noconfirm *
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --noconfirm --upgrade *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --noconfirm --ask=20 *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --noconfirm --ask=20 --overwrite="*" *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --needed --noconfirm --ask=20 *
