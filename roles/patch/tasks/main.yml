@@ -1,13 +1,49 @@
 # ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
 ---
 - block:
+    - name: Check if pikaur is working
+      become: true
+      become_user: "{{ patch_user }}"
+      ansible.builtin.command:
+        cmd: 'pikaur -h'
+      register: _check_if_pikaur_works
+      ignore_errors: true
+      failed_when: false
+
+    - when: _check_if_pikaur_works.rc != 0
+      block:
+        - name: Check if pikaur is working (debug)
+          ansible.builtin.debug:
+            var: _check_if_pikaur_works
+
+        - name: Build and Install pikaur
+          become: true
+          become_user: "{{ patch_user }}"
+          ansible.builtin.shell: |
+            set -eu
+
+            rm -rf        /tmp/delete_me
+            mkdir -p      /tmp/delete_me
+            cd            /tmp/delete_me
+            git clone     https://aur.archlinux.org/pikaur.git pikaur
+            cd            pikaur
+            makepkg
+            sudo pacman --color=never --upgrade --noconfirm pikaur-*.pkg.tar.*
+            cd
+            rm -rf        /tmp/delete_me
+          register: _build_and_install_pikaur
+
+        - name: Build and Install pikaur (debug)
+          ansible.builtin.debug:
+            var: _build_and_install_pikaur
+
     - name: Install Packages - SyncFirst
       ansible.builtin.command:
         cmd: 'pacman -Sy --needed --noconfirm --ask=20 --overwrite="*" {{ keyring_packages | join(" ") }}'
       register: _install_packages_sync_first
 
     - name: Install Packages - SyncFirst (debug)
-      debug:
+      ansible.builtin.debug:
         var: _install_packages_sync_first
 
         #    - name: Install Packages - ZFS
@@ -131,6 +167,7 @@
     - name: Set the variable indicating that the patch succeeded
       set_fact:
         patch_succeeded: true
+
   rescue:
     - name: Set the variable indicating that the patch failed
       set_fact:
