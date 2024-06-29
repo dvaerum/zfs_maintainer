@@ -58,7 +58,7 @@
         #        var: _install_packages_zfs
 
     - name: Get Current Kernel Package Versions
-      shell: pacman -Qq | egrep '^('$(pacman -Qq | egrep '^linux(-[a-z]+)?-headers' | sed 's/-headers//' | tr '\n' '|' | sed -e 's/^|//' -e 's/|$//')')(-headers)?$' | xargs pacman -Q
+      shell: pacman -Qq | grep -E '^('$(pacman -Qq | grep -E '^linux(-[a-z]+)?-headers' | sed 's/-headers//' | tr '\n' '|' | sed -e 's/^|//' -e 's/|$//')')(-headers)?$' | xargs pacman -Q
       register: _result_current_kernel_package_versions
 
     - name: Get Current Kernel Package Versions (debug)
