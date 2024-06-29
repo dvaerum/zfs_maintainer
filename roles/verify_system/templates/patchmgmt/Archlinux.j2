@@ -32,6 +32,8 @@
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --needed --noconfirm --ask=20 *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --needed --noconfirm --ask=20 --overwrite="*" *
 {{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman --color=never --sync --refresh
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pikaur -Sy --noconfirm * --pikaur-config=/{{ patch_user }}/.config/pikaur.conf --user-id=* --home-dir=/{{ patch_user }}
+{{ patch_user }} ALL=(ALL) NOPASSWD: /usr/bin/pikaur -Sy --aur --noconfirm --pikaur-config=/{{ patch_user }}/.config/pikaur.conf --user-id=* --home-dir=/{{ patch_user }}
 
 ### Allow to install the zfs_packages individually without sudo password
 {% for zfs_package in zfs_packages %}
